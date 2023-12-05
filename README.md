@@ -5,7 +5,7 @@ This repository represents the official implementation of the paper titled "Repu
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
 [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02145)
 [![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing)
-[![HF Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/Bingxin/Marigold)
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/Bingxin/Marigold)
 [![License](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-929292)](LICENSE)
 <!-- [![Website](https://img.shields.io/badge/Project-Website-1081c2)](https://arxiv.org/abs/2312.02145) -->
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
@@ -25,9 +25,10 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 
 ## 📢 News
 
-2023-12-04: Upload [arxiv](https://arxiv.org/abs/2312.02145) paper.
+2023-12-05: [![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing) is available.
 
-2023-12-04: Release inference code.
+2023-12-04: Both [arxiv](https://arxiv.org/abs/2312.02145) paper and inference code are available.
+
 
 ## 🛠️ Setup
 
