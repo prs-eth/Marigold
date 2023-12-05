@@ -3,7 +3,7 @@
 This repository represents the official implementation of the paper titled "Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation".
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
-[![Paper](doc/badges/badge-pdf.svg)]()
+[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2312.02145)
 [![License](doc/badges/badge-license.svg)](LICENSE)
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
 <!-- [![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue)]() -->
@@ -22,13 +22,11 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 
 ![teaser](doc/teaser_collage_transparant.png)
 
-
 ## 📢 News
 
-2023-12-04: Upload [arxiv]() paper.
+2023-12-04: Upload [arxiv](https://arxiv.org/abs/2312.02145) paper.
 
 2023-12-04: Release inference code.
-
 
 ## 🛠️ Setup
 
@@ -37,14 +35,7 @@ This code has been tested on:
 - Python 3.10.12, PyTorch 2.0.1, CUDA 11.7, GeForce RTX 3090
 - python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
 
-Clone repository
-
-```bash
-git clone git@github.com:prs-eth/Marigold.git
-cd Marigold
-```
-
-Setup Python environment
+💻 Dependencies
 
 ```bash
 python -m venv venv/marigold
@@ -52,7 +43,7 @@ source venv/marigold/bin/activate
 pip install -r requirements.txt
 ```
 
-Download checkpoint
+🚩 Checkpoint
 
 ```bash
 bash script/download_weights.sh
@@ -60,13 +51,13 @@ bash script/download_weights.sh
 
 ## 🚀 Inference on in-the-wild images
 
-📷 Download sample images
+📷 Sample images
 
 ```bash
 bash script/download_sample_data.sh
 ```
 
-🎮 Run inference
+🎮 Inference
 
 ```bash
 python run.py \
@@ -99,7 +90,6 @@ python run.py \
   year      = {2023},
 }
 ```
-[<img src="doc/badges/badge-pdf.svg" height="20"/>]()
 
 ## License
 
