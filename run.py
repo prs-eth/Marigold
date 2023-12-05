@@ -130,13 +130,11 @@ if "__main__" == __name__:
                 image = resize_max_res(
                     input_image, max_edge_resolution=resize_to_max_res
                 )
-
+            
+            # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
+            image = image.convert('RGB')
+            
             image = np.asarray(image)
-
-            # Copy channels for B&W images
-            if 2 == len(image.shape):
-                image = image[:, :, np.newaxis]
-                image = np.repeat(image, 3, axis=-1)
 
             # Normalize rgb values
             rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
