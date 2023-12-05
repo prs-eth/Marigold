@@ -3,14 +3,14 @@
 This repository represents the official implementation of the paper titled "Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation".
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
-[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2312.02145)
+[![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02145)
+[![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing)
 [![HF Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/Bingxin/Marigold)
-[![License](doc/badges/badge-license.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-929292)](LICENSE)
+<!-- [![Website](https://img.shields.io/badge/Project-Website-1081c2)](https://arxiv.org/abs/2312.02145) -->
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
 <!-- [![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue)]() -->
-<!-- [![Open In Colab](doc/badges/badge-colab.svg)]() -->
 <!-- [![Docker](doc/badges/badge-docker.svg)]() -->
-<!-- ### [Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation]() -->
 
 [Bingxin Ke](http://www.kebingxin.com/),
 [Anton Obukhov](https://www.obukhov.ai/),
@@ -36,6 +36,12 @@ This code has been tested on:
 - Python 3.10.12, PyTorch 2.0.1, CUDA 11.7, GeForce RTX 3090
 - python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
 
+### 📦 Repository
+
+```bash
+git clone https://github.com/prs-eth/Marigold.git
+cd Marigold
+```
 
 ### 💻 Dependencies
 
@@ -113,4 +119,4 @@ python run.py \
 
 This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
-[<img src="doc/badges/badge-license.svg" height="20"/>](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![License](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-929292)](LICENSE)

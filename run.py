@@ -100,17 +100,22 @@ if "__main__" == __name__:
     device = torch.device("cuda" if cuda_avail else "cpu")
     print(f"device = {device}")
 
-    # -------------------- Model --------------------
-    model = MarigoldPipeline.from_pretrained(checkpoint_path)
-
-    model = model.to(device)
-    
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
     rgb_filename_list = [
         f for f in rgb_filename_list if os.path.splitext(f)[1].lower() in EXTENSION_LIST
     ]
-    print(f"Found {len(rgb_filename_list)} images")
+    n_images = len(rgb_filename_list)
+    if n_images > 0:
+        print(f"Found {n_images} images")
+    else:
+        print(f"No image found in '{input_rgb_dir}'")
+        exit(1)
+    
+    # -------------------- Model --------------------
+    model = MarigoldPipeline.from_pretrained(checkpoint_path)
+
+    model = model.to(device)
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
