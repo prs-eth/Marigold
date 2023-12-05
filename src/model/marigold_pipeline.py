@@ -1,22 +1,25 @@
 # Author: Bingxin Ke
-# Last modified: 2023-12-04
+# Last modified: 2023-12-05
 
-#%%
-import os
-import numpy as np
-from typing import List, Dict
-from tqdm import tqdm
 import logging
+import os
+from typing import Dict
 
+import numpy as np
 import torch
+from diffusers import (
+    DDIMScheduler,
+    DDPMScheduler,
+    PNDMScheduler,
+    SchedulerMixin,
+    UNet2DConditionModel,
+)
 from torch import nn
 from torch.nn import Conv2d
 from torch.nn.functional import interpolate
 from torch.nn.parameter import Parameter
-
-from diffusers import UNet2DConditionModel, PNDMScheduler, DDIMScheduler, SchedulerMixin, DDPMScheduler
+from tqdm import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
-
 
 from .rgb_encoder import RGBEncoder
 from .stacked_depth_AE import StackedDepthAE
@@ -26,96 +29,137 @@ class MarigoldPipeline(nn.Module):
     """
     Marigold monocular depth estimator.
     """
-    
-    def __init__(self,
-                 unet_pretrained_path: str,
-                 rgb_encoder_pretrained_path: str = None,
-                 depht_ae_pretrained_path: str = None,
-                 noise_scheduler_pretrained_path: str = None,
-                 tokenizer_pretrained_path: str = None,
-                 text_encoder_pretrained_path: str = None,
-                 empty_text_embed = None,
-                 trainable_unet = False,
-                 rgb_latent_scale_factor = 0.18215,
-                 depth_latent_scale_factor = 0.18215,
-                 noise_scheduler_type = 'DDIMScheduler',
-                 enable_gradient_checkpointing = False,
-                 enable_xformers = True,
-                 ) -> None:
-        
+
+    def __init__(
+        self,
+        unet_pretrained_path: Dict,  # {path: xxx, subfolder: xxx}
+        rgb_encoder_pretrained_path: Dict,
+        depht_ae_pretrained_path: Dict,
+        noise_scheduler_pretrained_path: Dict,
+        tokenizer_pretrained_path: Dict,
+        text_encoder_pretrained_path: Dict,
+        empty_text_embed=None,
+        trainable_unet=False,
+        rgb_latent_scale_factor=0.18215,
+        depth_latent_scale_factor=0.18215,
+        noise_scheduler_type="DDIMScheduler",
+        enable_gradient_checkpointing=False,
+        enable_xformers=True,
+    ) -> None:
         super().__init__()
-        
+
         self.rgb_latent_scale_factor = rgb_latent_scale_factor
         self.depth_latent_scale_factor = depth_latent_scale_factor
-        self.device = 'cpu'
-        
+        self.device = "cpu"
+
         # ******* Initialize modules *******
         # Trainable modules
         self.trainable_module_dic: Dict[str, nn.Module] = {}
         self.trainable_unet = trainable_unet
-        
+
         # Denoising UNet
-        self.unet: UNet2DConditionModel = UNet2DConditionModel.from_pretrained(unet_pretrained_path)
+        self.unet: UNet2DConditionModel = UNet2DConditionModel.from_pretrained(
+            unet_pretrained_path["path"], subfolder=unet_pretrained_path["subfolder"]
+        )
         logging.info(f"pretrained UNet loaded from: {unet_pretrained_path}")
-        if 8 != self.unet.config['in_channels']:
+        if 8 != self.unet.config["in_channels"]:
             self._replace_unet_conv_in()
             logging.warning("Unet conv_in layer is replaced")
         if enable_xformers:
             self.unet.enable_xformers_memory_efficient_attention()
         else:
             self.unet.disable_xformers_memory_efficient_attention()
-            
+
         # Image encoder
-        if rgb_encoder_pretrained_path is None: rgb_encoder_pretrained_path = os.path.join(os.path.dirname(unet_pretrained_path), 'vae')
-        self.rgb_encoder = RGBEncoder(pretrained_path=rgb_encoder_pretrained_path)
-        logging.info(f"pretrained RGBEncoder loaded from: {rgb_encoder_pretrained_path}")
+        self.rgb_encoder = RGBEncoder(
+            pretrained_path=rgb_encoder_pretrained_path["path"],
+            subfolder=rgb_encoder_pretrained_path["subfolder"],
+        )
+        logging.info(
+            f"pretrained RGBEncoder loaded from: {rgb_encoder_pretrained_path}"
+        )
         self.rgb_encoder.requires_grad_(False)
-        
+
         # Depth encoder-decoder
-        if depht_ae_pretrained_path is None: depht_ae_pretrained_path = os.path.join(os.path.dirname(unet_pretrained_path), 'vae')
-        self.depth_ae = StackedDepthAE(pretrained_path=depht_ae_pretrained_path)
-        logging.info(f"pretrained Depth Autoencoder loaded from: {rgb_encoder_pretrained_path}")
-        
+        self.depth_ae = StackedDepthAE(
+            pretrained_path=depht_ae_pretrained_path["path"],
+            subfolder=depht_ae_pretrained_path["subfolder"],
+        )
+        logging.info(
+            f"pretrained Depth Autoencoder loaded from: {rgb_encoder_pretrained_path}"
+        )
+
         # Trainability
         # unet
         if self.trainable_unet:
             self.unet.requires_grad_(True)
-            self.trainable_module_dic['unet'] = self.unet
+            self.trainable_module_dic["unet"] = self.unet
             logging.debug(f"UNet is set to trainable")
         else:
             self.unet.requires_grad_(False)
             logging.debug(f"UNet is set to frozen")
-        
+
         # Gradient checkpointing
         if enable_gradient_checkpointing:
             self.unet.enable_gradient_checkpointing()
             self.depth_ae.vae.enable_gradient_checkpointing()
-        
+
         # Noise scheduler
-        if noise_scheduler_pretrained_path is None: noise_scheduler_pretrained_path = os.path.join(os.path.dirname(unet_pretrained_path), 'scheduler')
-        if 'DDPMScheduler' == noise_scheduler_type:
+        if "DDPMScheduler" == noise_scheduler_type:
             self.noise_scheduler: SchedulerMixin = DDPMScheduler.from_pretrained(
-                noise_scheduler_pretrained_path)
-        elif 'DDIMScheduler' == noise_scheduler_type:
+                noise_scheduler_pretrained_path["path"],
+                subfolder=noise_scheduler_pretrained_path["subfolder"],
+            )
+        elif "DDIMScheduler" == noise_scheduler_type:
             self.noise_scheduler: SchedulerMixin = DDIMScheduler.from_pretrained(
-                noise_scheduler_pretrained_path)
-        elif 'PNDMScheduler' == noise_scheduler_type:
+                noise_scheduler_pretrained_path["path"],
+                subfolder=noise_scheduler_pretrained_path["subfolder"],
+            )
+        elif "PNDMScheduler" == noise_scheduler_type:
             self.noise_scheduler: SchedulerMixin = PNDMScheduler.from_pretrained(
-                noise_scheduler_pretrained_path)
+                noise_scheduler_pretrained_path["path"],
+                subfolder=noise_scheduler_pretrained_path["subfolder"],
+            )
         else:
             raise NotImplementedError
 
         # Text embed for empty prompt (always in CPU)
         if empty_text_embed is None:
-            if tokenizer_pretrained_path is None: tokenizer_pretrained_path = os.path.join(os.path.dirname(unet_pretrained_path), 'tokenizer')
-            tokenizer: CLIPTokenizer = CLIPTokenizer.from_pretrained(tokenizer_pretrained_path)
-            if text_encoder_pretrained_path is None: text_encoder_pretrained_path = os.path.join(os.path.dirname(unet_pretrained_path), 'text_encoder')
-            text_encoder: CLIPTextModel = CLIPTextModel.from_pretrained(text_encoder_pretrained_path)
+            tokenizer: CLIPTokenizer = CLIPTokenizer.from_pretrained(
+                tokenizer_pretrained_path["path"],
+                subfolder=tokenizer_pretrained_path["subfolder"],
+            )
+            text_encoder: CLIPTextModel = CLIPTextModel.from_pretrained(
+                text_encoder_pretrained_path["path"],
+                subfolder=text_encoder_pretrained_path["subfolder"],
+            )
             with torch.no_grad():
-                self.empty_text_embed = self._encode_text("", tokenizer, text_encoder).detach()  # [1, 2, 1024]
+                self.empty_text_embed = self._encode_text(
+                    "", tokenizer, text_encoder
+                ).detach()  # [1, 2, 1024]
         else:
             self.empty_text_embed = empty_text_embed
-    
+
+    def from_pretrained(pretrained_path, **kwargs):
+        return __class__(
+            unet_pretrained_path={"path": pretrained_path, "subfolder": "unet"},
+            rgb_encoder_pretrained_path={"path": pretrained_path, "subfolder": "vae"},
+            depht_ae_pretrained_path={"path": pretrained_path, "subfolder": "vae"},
+            noise_scheduler_pretrained_path={
+                "path": pretrained_path,
+                "subfolder": "scheduler",
+            },
+            tokenizer_pretrained_path={
+                "path": pretrained_path,
+                "subfolder": "tokenizer",
+            },
+            text_encoder_pretrained_path={
+                "path": pretrained_path,
+                "subfolder": "text_encoder",
+            },
+            **kwargs,
+        )
+
     def _replace_unet_conv_in(self):
         # Replace the first layer to accept 8 in_channels. Only applied when loading pretrained SD U-Net
         _weight = self.unet.conv_in.weight.clone()  # [320, 4, 3, 3]
@@ -126,14 +170,16 @@ class MarigoldPipeline(nn.Module):
         _bias *= 0.5
         # new conv_in channel
         _n_convin_out_channel = self.unet.conv_in.out_channels
-        _new_conv_in = Conv2d(8, _n_convin_out_channel, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        _new_conv_in = Conv2d(
+            8, _n_convin_out_channel, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)
+        )
         _new_conv_in.weight = Parameter(_weight)
         _new_conv_in.bias = Parameter(_bias)
         self.unet.conv_in = _new_conv_in
         # replace config
-        self.unet.config['in_channels'] = 8
+        self.unet.config["in_channels"] = 8
         return
-    
+
     def to(self, device):
         self.rgb_encoder.to(device)
         self.depth_ae.to(device)
@@ -141,52 +187,80 @@ class MarigoldPipeline(nn.Module):
         self.empty_text_embed = self.empty_text_embed.to(device)
         self.device = device
         return self
-    
-    def forward(self, rgb_in, num_inference_steps: int = 50, num_output_inter_results: int = 0, show_pbar=False, init_depth_latent=None, return_depth_latent=False):
+
+    def forward(
+        self,
+        rgb_in,
+        num_inference_steps: int = 50,
+        num_output_inter_results: int = 0,
+        show_pbar=False,
+        init_depth_latent=None,
+        return_depth_latent=False,
+    ):
         device = rgb_in.device
-        
+
         # Set timesteps
         self.noise_scheduler.set_timesteps(num_inference_steps, device=device)
         timesteps = self.noise_scheduler.timesteps  # [T]
-        
+
         # Encode image
         rgb_latent = self.encode_rgb(rgb_in)
-        
+
         # Initial depth map (noise)
         if init_depth_latent is not None:
-            assert init_depth_latent.shape == rgb_latent.shape, "initial depth latent should be the size of [B, 4, H/8, W/8]"
+            assert (
+                init_depth_latent.shape == rgb_latent.shape
+            ), "initial depth latent should be the size of [B, 4, H/8, W/8]"
             depth_latent = init_depth_latent
         else:
             depth_latent = torch.randn(rgb_latent.shape, device=device)  # [B, 4, h, w]
-        
+
         # Expand text embeding for batch
-        batch_empty_text_embed = self.empty_text_embed.repeat((rgb_latent.shape[0], 1, 1))  # [B, 2, 1024]
-        
+        batch_empty_text_embed = self.empty_text_embed.repeat(
+            (rgb_latent.shape[0], 1, 1)
+        )  # [B, 2, 1024]
+
         # Export intermediate denoising steps
         if num_output_inter_results > 0:
             depth_latent_ls = []
             inter_steps = []
-            _idx = -1 * (np.arange(0, num_output_inter_results) * num_inference_steps / num_output_inter_results).round().astype(int) - 1
+            _idx = (
+                -1
+                * (
+                    np.arange(0, num_output_inter_results)
+                    * num_inference_steps
+                    / num_output_inter_results
+                )
+                .round()
+                .astype(int)
+                - 1
+            )
             steps_to_output = timesteps[_idx]
-            
+
         # Denoising loop
         if show_pbar:
             iterable = tqdm(enumerate(timesteps), total=len(timesteps))
         else:
             iterable = enumerate(timesteps)
         for i, t in iterable:
-            unet_input = torch.cat([rgb_latent, depth_latent], dim=1)  # this order is important
+            unet_input = torch.cat(
+                [rgb_latent, depth_latent], dim=1
+            )  # this order is important
 
             # predict the noise residual
-            noise_pred = self.unet(unet_input, t, encoder_hidden_states=batch_empty_text_embed).sample  # [B, 4, h, w]
+            noise_pred = self.unet(
+                unet_input, t, encoder_hidden_states=batch_empty_text_embed
+            ).sample  # [B, 4, h, w]
 
             # compute the previous noisy sample x_t -> x_t-1
-            depth_latent = self.noise_scheduler.step(noise_pred, t, depth_latent).prev_sample
-            
+            depth_latent = self.noise_scheduler.step(
+                noise_pred, t, depth_latent
+            ).prev_sample
+
             if num_output_inter_results > 0 and t in steps_to_output:
                 depth_latent_ls.append(depth_latent.detach().clone())
                 inter_steps.append(t - 1)
-        
+
         # Decode depth latent
         if num_output_inter_results > 0:
             assert 0 in inter_steps
@@ -196,7 +270,7 @@ class MarigoldPipeline(nn.Module):
             else:
                 return depth, inter_steps
         else:
-            depth = self.decode_depth(depth_latent)  
+            depth = self.decode_depth(depth_latent)
             if return_depth_latent:
                 return depth, depth_latent
             else:
@@ -206,20 +280,26 @@ class MarigoldPipeline(nn.Module):
         rgb_latent = self.rgb_encoder(rgb_in)  # [B, 4, h, w]
         rgb_latent = rgb_latent * self.rgb_latent_scale_factor
         return rgb_latent
-    
+
     def encode_depth(self, depth_in):
         depth_latent = self.depth_ae.encode(depth_in)
         depth_latent = depth_latent * self.depth_latent_scale_factor
         return depth_latent
-    
+
     def decode_depth(self, depth_latent):
         depth_latent = depth_latent / self.depth_latent_scale_factor
         depth = self.depth_ae.decode(depth_latent)  # [B, 1, H, W]
         return depth
-    
+
     @staticmethod
     def _encode_text(prompt, tokenizer, text_encoder):
-        text_inputs = tokenizer(prompt, padding='do_not_pad', max_length=tokenizer.model_max_length, truncation=True, return_tensors='pt')
+        text_inputs = tokenizer(
+            prompt,
+            padding="do_not_pad",
+            max_length=tokenizer.model_max_length,
+            truncation=True,
+            return_tensors="pt",
+        )
         text_input_ids = text_inputs.input_ids.to(text_encoder.device)
         text_embed = text_encoder(text_input_ids)[0]
         return text_embed

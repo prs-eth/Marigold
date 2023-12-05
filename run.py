@@ -1,7 +1,7 @@
 # Script for inference on (in-the-wild) images
 
 # Author: Bingxin Ke
-# Last modified: 2023-12-04
+# Last modified: 2023-12-05
 
 
 import argparse
@@ -26,7 +26,7 @@ EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
 if "__main__" == __name__:
     # -------------------- Arguments --------------------
     parser = argparse.ArgumentParser(description="Run single-image depth estimation using Marigold.")
-    parser.add_argument("--checkpoint", type=str, default="checkpoint/Marigold_v1_merged", help="Path to checkpoint.")
+    parser.add_argument("--checkpoint", type=str, default="Bingxin/Marigold", help="Checkpoint path or hub name.")
 
     parser.add_argument("--input_rgb_dir", type=str, required=True, help="Path to the input image folder.")
 
@@ -100,17 +100,17 @@ if "__main__" == __name__:
     device = torch.device("cuda" if cuda_avail else "cpu")
     print(f"device = {device}")
 
+    # -------------------- Model --------------------
+    model = MarigoldPipeline.from_pretrained(checkpoint_path)
+
+    model = model.to(device)
+    
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
     rgb_filename_list = [
         f for f in rgb_filename_list if os.path.splitext(f)[1].lower() in EXTENSION_LIST
     ]
     print(f"Found {len(rgb_filename_list)} images")
-
-    # -------------------- Model --------------------
-    model = MarigoldPipeline(unet_pretrained_path=os.path.join(checkpoint_path, "unet"))
-
-    model = model.to(device)
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():

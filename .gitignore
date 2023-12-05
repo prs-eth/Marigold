@@ -6,6 +6,7 @@ output/
 temp/
 wandb/
 venv/
+cache/
 
 **/.ipynb_checkpoints/
 .vscode/

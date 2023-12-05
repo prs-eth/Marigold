@@ -4,6 +4,7 @@ This repository represents the official implementation of the paper titled "Repu
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
 [![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2312.02145)
+[![HF Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/Bingxin/Marigold)
 [![License](doc/badges/badge-license.svg)](LICENSE)
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
 <!-- [![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue)]() -->
@@ -35,7 +36,8 @@ This code has been tested on:
 - Python 3.10.12, PyTorch 2.0.1, CUDA 11.7, GeForce RTX 3090
 - python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
 
-💻 Dependencies
+
+### 💻 Dependencies
 
 ```bash
 python -m venv venv/marigold
@@ -43,21 +45,17 @@ source venv/marigold/bin/activate
 pip install -r requirements.txt
 ```
 
-🚩 Checkpoint
-
-```bash
-bash script/download_weights.sh
-```
-
 ## 🚀 Inference on in-the-wild images
 
-📷 Sample images
+### 📷 Sample images
 
 ```bash
 bash script/download_sample_data.sh
 ```
 
-🎮 Inference
+### 🎮 Inference
+
+This script will automatically download the [checkpoint](https://huggingface.co/Bingxin/Marigold).
 
 ```bash
 python run.py \
@@ -65,7 +63,7 @@ python run.py \
     --output_dir output/in-the-wild_example
 ```
 
-⚙️ Inference settings
+### ⚙️ Inference settings
 
 - The inference script by default will resize the input images and resize back to the original resolution.
   
@@ -80,6 +78,26 @@ python run.py \
 
 - `--seed`: Random seed, can be set to ensure reproducibility. Default: None (using current time as random seed).
 - `--depth_cmap`: Colormap used to colorize the depth prediction. Default: Spectral.
+
+- The model cache directory can be controlled by environment variable `HF_HOME`, for example:
+
+    ```bash
+    export HF_HOME=$(pwd)/checkpoint
+    ```
+
+### ⬇ Using local checkpoint
+
+```bash
+# Download checkpoint
+bash script/download_weights.sh
+```
+
+```bash
+python run.py \
+    --checkpoint checkpoint/Marigold_v1_merged \
+    --input_rgb_dir data/in-the-wild_example\
+    --output_dir output/in-the-wild_example
+```
 
 ## 🎓 Citation
 

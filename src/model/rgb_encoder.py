@@ -1,5 +1,5 @@
-# Created: 2022-02-21
 # Author: Bingxin Ke
+# Last modified: 2023-12-05
 
 import torch
 import torch.nn as nn
@@ -12,10 +12,10 @@ class RGBEncoder(nn.Module):
     The encoder of pretrained Stable Diffusion VAE
     """
     
-    def __init__(self, pretrained_path) -> None:
+    def __init__(self, pretrained_path, subfolder=None) -> None:
         super().__init__()
         
-        vae: AutoencoderKL = AutoencoderKL.from_pretrained(pretrained_path)
+        vae: AutoencoderKL = AutoencoderKL.from_pretrained(pretrained_path, subfolder=subfolder)
         logging.info(f"pretrained AutoencoderKL loaded from: {pretrained_path}")
         
         self.rgb_encoder = nn.Sequential(

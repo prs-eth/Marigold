@@ -1,5 +1,5 @@
-# Created: 2022-02-21
 # Author: Bingxin Ke
+# Last modified: 2023-12-05
 
 import torch
 import torch.nn as nn
@@ -14,10 +14,10 @@ class StackedDepthAE(nn.Module):
         Decode: The average of 3 chennels are taken as output.
     """
 
-    def __init__(self, pretrained_path) -> None:
+    def __init__(self, pretrained_path, subfolder=None) -> None:
         super().__init__()
 
-        self.vae: AutoencoderKL = AutoencoderKL.from_pretrained(pretrained_path)
+        self.vae: AutoencoderKL = AutoencoderKL.from_pretrained(pretrained_path, subfolder=subfolder)
         logging.info(f"pretrained AutoencoderKL loaded from: {pretrained_path}")
 
     def forward(self, depth_in):
