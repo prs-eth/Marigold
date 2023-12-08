@@ -15,14 +15,14 @@ from diffusers import (
     UNet2DConditionModel,
 )
 from torch import nn
-from torch.nn import Conv2d
+from torch.nn import Conv2
 from torch.nn.functional import interpolate
 from torch.nn.parameter import Parameter
 from tqdm import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
-from .rgb_encoder import RGBEncoder
-from .stacked_depth_AE import StackedDepthAE
+from marigold.model.rgb_encoder import RGBEncoder
+from marigold.model.stacked_depth_AE import StackedDepthAE
 
 
 class MarigoldPipeline(nn.Module):

@@ -1,0 +1,30 @@
+# Copyright (c) 2023 Synthesia Limited - All Rights Reserved
+#
+# Unauthorized copying of this file, via any medium is strictly prohibited.
+# Proprietary and confidential.
+
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marigold"
+version = "0.0.1"
+description = "Marigold: Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation"
+classifiers = [
+  "Programming Language :: Python :: 3"
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "diffusers>=0.20.1",
+    "matplotlib",
+    "numpy>=1.26.1",
+    "opencv-python",
+    "scipy>=1.11.3",
+    "torch>=2.0.1",
+    "tqdm",
+    "transformers>=4.32.1",
+    "xformers==0.0.21",
+
+]
