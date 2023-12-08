@@ -10,6 +10,7 @@ cache/
 
 **/.ipynb_checkpoints/
 .vscode/
+.idea
 
 # ignore these types
 *.pyc

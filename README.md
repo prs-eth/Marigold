@@ -26,9 +26,21 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 
 ## 📢 News
 
-2023-12-05: [![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing) is available.
+2023-12-08: Added 
+<a href="https://huggingface.co/spaces/toshas/marigold">
+    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16">
+</a> - try it out with your images for free!
 
-2023-12-04: Both [arxiv](https://arxiv.org/abs/2312.02145) paper and inference code are available.
+2023-12-05: Added 
+<a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing">
+    <img src="doc/badges/badge-colab.svg" height="16">
+</a> - dive deeper into our inference pipeline!
+
+2023-12-04: Added 
+<a href="https://arxiv.org/abs/2312.02145">
+    <img src="https://img.shields.io/badge/arXiv-PDF-b31b1b" height="16">
+</a>
+paper and inference code (this repository).
 
 
 ## 🛠️ Setup
@@ -36,7 +48,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 This code has been tested on:
 
 - Python 3.10.12, PyTorch 2.0.1, CUDA 11.7, GeForce RTX 3090
-- python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
+- Python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
 
 ### 📦 Repository
 
@@ -67,7 +79,7 @@ This script will automatically download the [checkpoint](https://huggingface.co/
 
 ```bash
 python run.py \
-    --input_rgb_dir data/in-the-wild_example\
+    --input_rgb_dir data/in-the-wild_example \
     --output_dir output/in-the-wild_example
 ```
 
@@ -110,10 +122,13 @@ python run.py \
 ## 🎓 Citation
 
 ```bibtex
-@misc{ke2023marigold,
-  author    = {Ke, Bingxin and Obukhov, Anton and Huang, Shengyu and Metzger, Nando and Daudt, Rodrigo Caye and Schindler, Konrad},
-  title     = {Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation},
-  year      = {2023},
+@misc{ke2023repurposing,
+      title={Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation}, 
+      author={Bingxin Ke and Anton Obukhov and Shengyu Huang and Nando Metzger and Rodrigo Caye Daudt and Konrad Schindler},
+      year={2023},
+      eprint={2312.02145},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
 }
 ```
 
