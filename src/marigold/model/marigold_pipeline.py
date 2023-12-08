@@ -2,7 +2,6 @@
 # Last modified: 2023-12-05
 
 import logging
-import os
 from typing import Dict
 
 import numpy as np
@@ -15,8 +14,6 @@ from diffusers import (
     UNet2DConditionModel,
 )
 from torch import nn
-from torch.nn import Conv2
-from torch.nn.functional import interpolate
 from torch.nn.parameter import Parameter
 from tqdm import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer

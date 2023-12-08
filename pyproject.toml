@@ -17,13 +17,16 @@ classifiers = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "diffusers>=0.20.1",
-    "matplotlib",
-    "numpy>=1.23.4",
-    "opencv-python",
-    "scipy>=1.11.3",
-    "torch>=1.13",
-    "tqdm",
-    "transformers>=4.32.1",
-    "xformers",
+  "accelerate",
+  "diffusers>=0.20.1",
+  "matplotlib",
+  "numpy>=1.26.1",
+  "opencv-python",
+  "scipy>=1.11.3",
+  "tensorboard",
+  "torch>=2.0.1",
+  "torchvision>=0.15.2",
+  "tqdm",
+  "transformers>=4.32.1",
+  "xformers>=0.0.21",
 ]

@@ -1,4 +1,5 @@
-
+build/*
+*.egg-info
 # ignore these folders
 checkpoint/
 data/
