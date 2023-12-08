@@ -43,20 +43,16 @@ paper and inference code (this repository).
 ## Usage
 
 We offer a number of way to interact with Marigold:
-1. A free online interactive demo is available here: 
-<a href="https://huggingface.co/spaces/toshas/marigold">
-    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16">
-</a> (kudos to the HF team for the GPU grant)
-1. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)): `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py` 
-1. Extended demo on a Google Colab:
-<a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing">
-    <img src="doc/badges/badge-colab.svg" height="16">
-</a>
-1. If you just want to just see the examples, visit our gallery: 
-<a href="https://marigoldmonodepth.github.io">
-    <img src="doc/badges/badge-website.svg" height="16">
-</a>
-1. Finally, local development instructions are given below.
+
+1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
+
+2. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)): `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py` 
+
+3. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
+
+4. If you just want to just see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
+
+5. Finally, local development instructions are given below.
 
 
 ## 🛠️ Setup
