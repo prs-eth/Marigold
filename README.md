@@ -34,7 +34,7 @@ paper and inference code (this repository).
 
 ## Usage
 
-We offer a number of way to interact with Marigold:
+We offer a number of ways to interact with Marigold:
 
 1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
 
