@@ -122,7 +122,7 @@ if "__main__" == __name__:
     if args.guided_upsampling:
         assert resize_back, "guided upsampling requires resize_back"
         upsampling_model = GADBase().to(device)
-        upsampling_model.load_state_dict(torch.load("checkpointGSR/DADAcheckpointx4.pth", map_location=device)["model"], strict=False)
+        upsampling_model.load_state_dict(torch.load("checkpointGSR/DADAcheckpoint.pth", map_location=device)["model"], strict=False)
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
