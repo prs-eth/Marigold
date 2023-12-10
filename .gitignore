@@ -1,7 +1,9 @@
 
 # ignore these folders
 checkpoint/
+checkpointGSR/
 data/
+data2/
 output/
 temp/
 wandb/
