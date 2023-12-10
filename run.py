@@ -18,6 +18,7 @@ from src.model.marigold_pipeline import MarigoldPipeline
 from src.util.ensemble import ensemble_depths
 from src.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
 from src.util.seed_all import seed_all
+from src.util.gsr import GADBase
 
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
@@ -35,7 +36,8 @@ if "__main__" == __name__:
     # resolution setting
     parser.add_argument("--resize_to_max_res", type=int, default=768, help="Resize the input image a max width/height while keeping aspect ratio. Only work when --resize_input is applied. Default: 768.")
     parser.add_argument("--not_resize_input", action="store_true", help="Use the original input resolution. Default: False.")
-    parser.add_argument("--not_resize_output", action="store_true", help="When input is resized, out put depth at resized resolution. Default: False.")
+    parser.add_argument("--not_resize_output", action="store_true", help="When input is resized, output depth at resized resolution. Default: False.")
+    parser.add_argument("--guided_upsampling", action="store_true", help="Use the DADA guided upsampling model to resize the depth map to the original resolution. Default: False.")
 
     # inference setting
     parser.add_argument("--n_infer", type=int, default=10, help="Number of inferences to be ensembled, more inference gives better results but runs slower.")
@@ -117,6 +119,11 @@ if "__main__" == __name__:
 
     model = model.to(device)
 
+    if args.guided_upsampling:
+        assert resize_back, "guided upsampling requires resize_back"
+        upsampling_model = GADBase().to(device)
+        upsampling_model.load_state_dict(torch.load("checkpointGSR/DADAcheckpointx4.pth", map_location=device)["model"], strict=False)
+
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
         os.makedirs(output_dir, exist_ok=True)
@@ -172,9 +179,43 @@ if "__main__" == __name__:
 
             # Resize back to original resolution
             if resize_back:
-                pred_img = Image.fromarray(depth_pred)
-                pred_img = pred_img.resize(input_image.size)
-                depth_pred = np.asarray(pred_img)
+                if args.guided_upsampling:
+                    # apply guided upsampling model
+                    source_depth = torch.from_numpy(depth_pred.astype(np.float32)).unsqueeze(0).unsqueeze(0) # torch shape [1, 1, H, W]
+                    guide_rgb = torch.from_numpy(np.asarray(input_image).astype(np.float32)).permute((2, 0, 1)).unsqueeze(0) # torch shape [1,3,H,W]
+                    guide_rgb = guide_rgb / (255./2) - 1 # normalize to [-1, 1]
+
+                    # perform guided upsampling
+                    depth_pred_test = upsampling_model(source=source_depth, guide=guide_rgb, Nsteps=4000, gamma=0.0)
+                    depth_pred = depth_pred_test["y_pred"].squeeze().detach().cpu().numpy()
+
+                    # cv = depth_pred_test["cv"].squeeze().detach().cpu().numpy()
+                    # ch = depth_pred_test["ch"].squeeze().detach().cpu().numpy()
+
+                    # TODO: delete this later, just for debugging
+                    # import matplotlib.pyplot as plt
+                    # rgb_name_base = os.path.splitext(os.path.basename(rgb_path))[0]
+                    # pred_name_base = rgb_name_base + "_pred"
+                    # colormap = plt.get_cmap('viridis')
+
+                    # save_to_png = os.path.join(output_dir_color, f"{pred_name_base}_cv.png") 
+                    # cv_colored = colormap(cv) 
+                    # cv_colored_rgb = (cv_colored[:, :, :3] * 255).astype(np.uint8) 
+                    # cv2.imwrite(save_to_png, cv2.cvtColor(cv_colored_rgb, cv2.COLOR_RGB2BGR))
+
+                    # save_to_png = os.path.join(output_dir_color, f"{pred_name_base}_ch.png")
+                    # ch_colored = colormap(ch)
+                    # ch_colored_rgb = (ch_colored[:, :, :3] * 255).astype(np.uint8)
+                    # cv2.imwrite(save_to_png, cv2.cvtColor(ch_colored_rgb, cv2.COLOR_RGB2BGR))
+
+                    source_depth_np = source_depth.squeeze().detach().cpu().numpy()
+
+
+                else:
+
+                    pred_img = Image.fromarray(depth_pred)
+                    pred_img = pred_img.resize(input_image.size)
+                    depth_pred = np.asarray(pred_img)
 
             # Save as npy
             rgb_name_base = os.path.splitext(os.path.basename(rgb_path))[0]
@@ -204,3 +245,16 @@ if "__main__" == __name__:
             depth_colored = (depth_colored * 255).astype(np.uint8)
             depth_colored_hwc = chw2hwc(depth_colored)
             Image.fromarray(depth_colored_hwc).save(save_to_color)
+
+            # TODO: delete this, this is just for debugging, 
+            # save source image
+            if args.guided_upsampling:
+                save_to_color = os.path.join(
+                    output_dir_color, f"{pred_name_base}_source.png"
+                )
+                depth_colored = colorize_depth_maps(
+                    source_depth_np, min_depth_pct, max_depth_pct, cmap=depth_cmap
+                ).squeeze()  # [3, H, W], value in (0, 1)
+                depth_colored = (depth_colored * 255).astype(np.uint8)
+                depth_colored_hwc = chw2hwc(depth_colored)
+                Image.fromarray(depth_colored_hwc).save(save_to_color)
