@@ -113,7 +113,7 @@ if "__main__" == __name__:
         exit(1)
     
     # -------------------- Model --------------------
-    model = MarigoldPipeline.from_pretrained(checkpoint_path)
+    model = MarigoldPipeline.from_pretrained(checkpoint_path, enable_xformers=cuda_avail)
 
     model = model.to(device)
 
