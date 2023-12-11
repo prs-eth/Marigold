@@ -1,23 +1,24 @@
 # Script for inference on (in-the-wild) images
 
 # Author: Bingxin Ke
-# Last modified: 2023-12-05
+# Last modified: 2023-12-11
 
 
 import argparse
 import os
 from glob import glob
 
-import cv2
 import numpy as np
 import torch
+from torch.utils.data import DataLoader, TensorDataset
 from PIL import Image
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from src.model.marigold_pipeline import MarigoldPipeline
 from src.util.ensemble import ensemble_depths
 from src.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
 from src.util.seed_all import seed_all
+from src.util.batchsize import find_batch_size
 
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
@@ -31,6 +32,10 @@ if "__main__" == __name__:
     parser.add_argument("--input_rgb_dir", type=str, required=True, help="Path to the input image folder.")
 
     parser.add_argument("--output_dir", type=str, required=True, help="Output directory.")
+
+    parser.add_argument("--batch_size", type=int, default=None, help="Inference batch size. Default: None (will be set automatically).")
+
+    parser.add_argument("--disable_xformers", action="store_true", help="Disable xformers on GPUs without Tensor Cores")
 
     # resolution setting
     parser.add_argument("--resize_to_max_res", type=int, default=768, help="Resize the input image a max width/height while keeping aspect ratio. Only work when --resize_input is applied. Default: 768.")
@@ -60,6 +65,10 @@ if "__main__" == __name__:
 
     output_dir = args.output_dir
 
+    batch_size = args.batch_size
+
+    disable_xformers = args.disable_xformers
+
     resize_to_max_res = args.resize_to_max_res
     resize_input = not args.not_resize_input
     resize_back = not args.not_resize_output if resize_input else False
@@ -86,11 +95,11 @@ if "__main__" == __name__:
 
     # Output directories
     output_dir_color = os.path.join(output_dir, "depth_colored")
-    output_dir_png = os.path.join(output_dir, "depth_bw")
+    output_dir_tif = os.path.join(output_dir, "depth_bw")
     output_dir_npy = os.path.join(output_dir, "depth_npy")
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(output_dir_color, exist_ok=True)
-    os.makedirs(output_dir_png, exist_ok=True)
+    os.makedirs(output_dir_tif, exist_ok=True)
     os.makedirs(output_dir_npy, exist_ok=True)
     print(f"output dir: {output_dir}")
 
@@ -104,17 +113,18 @@ if "__main__" == __name__:
     rgb_filename_list = [
         f for f in rgb_filename_list if os.path.splitext(f)[1].lower() in EXTENSION_LIST
     ]
+    rgb_filename_list = sorted(rgb_filename_list)
     n_images = len(rgb_filename_list)
     if n_images > 0:
         print(f"Found {n_images} images")
     else:
-        print(f"No image found in '{input_rgb_dir}'")
-        exit(1)
-    
+        raise RuntimeError(f"No image found in '{input_rgb_dir}'")
+
     # -------------------- Model --------------------
-    model = MarigoldPipeline.from_pretrained(checkpoint_path)
+    model = MarigoldPipeline.from_pretrained(checkpoint_path, enable_xformers=(not disable_xformers))
 
     model = model.to(device)
+    model.unet.eval()
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
@@ -124,7 +134,7 @@ if "__main__" == __name__:
             # Read input image
             input_image = Image.open(rgb_path)
             input_size = input_image.size
-            
+
             # Resize image
             if resize_input:
                 input_image = resize_max_res(
@@ -132,29 +142,45 @@ if "__main__" == __name__:
                 )
 
             # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
-            input_image = input_image.convert('RGB')
-            
+            input_image = input_image.convert("RGB")
+
             image = np.asarray(input_image)
 
             # Normalize rgb values
             rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
             rgb_norm = rgb / 255.0
-            rgb_norm = torch.from_numpy(rgb_norm).unsqueeze(0).float()
+            rgb_norm = torch.from_numpy(rgb_norm).float()
             rgb_norm = rgb_norm.to(device)
             assert rgb_norm.min() >= 0.0 and rgb_norm.max() <= 1.0
 
-            # Predict depth maps
-            model.unet.eval()
+            # Batch repeated input image
+            duplicated_rgb = torch.stack([rgb_norm] * n_repeat)
+            single_rgb_dataset = TensorDataset(duplicated_rgb)
+            if batch_size is None:
+                _bs = find_batch_size(n_repeat=n_repeat, input_res=max(rgb_norm.shape[1:]))
+            else:
+                _bs = batch_size
+
+            single_rgb_loader = DataLoader(single_rgb_dataset, batch_size=_bs, shuffle=False)
+
+            # Predict depth maps (batched)
             depth_pred_ls = []
-            for i_rep in tqdm(range(n_repeat), desc="multiple inference", leave=False):
+            for batch in tqdm(single_rgb_loader, desc="multiple inference", leave=False):
+                (batched_img,) = batch
                 depth_pred_raw = model.forward(
-                    rgb_norm, num_inference_steps=denoise_steps, init_depth_latent=None
+                    batched_img,
+                    num_inference_steps=denoise_steps,
+                    init_depth_latent=None,
+                    show_pbar=True
                 )
                 # clip prediction
                 depth_pred_raw = torch.clip(depth_pred_raw, -1.0, 1.0)
-                depth_pred_ls.append(depth_pred_raw.detach().cpu().numpy().copy())
+                # shift to [0, 1]
+                depth_pred_raw = depth_pred_raw * 2.0 - 1.0
+                depth_pred_ls.append(depth_pred_raw.detach().clone())
 
-            depth_preds = np.concatenate(depth_pred_ls, axis=0).squeeze()
+            depth_preds = torch.concat(depth_pred_ls, axis=0).squeeze()
+            torch.cuda.empty_cache()  # clear vram cache for ensembling
 
             # Test-time ensembling
             if n_repeat > 1:
@@ -169,6 +195,9 @@ if "__main__" == __name__:
                 )
             else:
                 depth_pred = depth_preds
+            
+            # Convert to numpy for saving
+            depth_pred = depth_pred.cpu().numpy()
 
             # Resize back to original resolution
             if resize_back:
@@ -182,14 +211,14 @@ if "__main__" == __name__:
             save_to_npy = os.path.join(output_dir_npy, f"{pred_name_base}.npy")
             np.save(save_to_npy, depth_pred)
 
-            # Save as 16uint png
-            save_to_png = os.path.join(output_dir_png, f"{pred_name_base}.png")
+            # Save as 16-bit uint png
+            save_to_png = os.path.join(output_dir_tif, f"{pred_name_base}.png")
             # scale prediction to [0, 1]
             min_d = np.min(depth_pred)
             max_d = np.max(depth_pred)
             depth_to_save = (depth_pred - min_d) / (max_d - min_d)
             depth_to_save = (depth_to_save * 65535.0).astype(np.uint16)
-            cv2.imwrite(save_to_png, depth_to_save)
+            Image.fromarray(depth_to_save).save(save_to_png, mode="I;16")
 
             # Colorize
             percentile = 0.03

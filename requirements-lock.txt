@@ -1,0 +1,12 @@
+accelerate==0.22.0
+diffusers>=0.20.1
+matplotlib
+numpy==1.26.1
+scipy==1.11.3
+torch==2.0.1
+torchaudio==2.0.2
+torchvision==0.15.2
+tqdm
+transformers==4.32.1
+triton==2.0.0
+xformers==0.0.21

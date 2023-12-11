@@ -1,8 +1,7 @@
 # Author: Bingxin Ke
-# Last modified: 2023-12-05
+# Last modified: 2023-12-11
 
 import logging
-import os
 from typing import Dict
 
 import numpy as np
@@ -16,9 +15,8 @@ from diffusers import (
 )
 from torch import nn
 from torch.nn import Conv2d
-from torch.nn.functional import interpolate
 from torch.nn.parameter import Parameter
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from .rgb_encoder import RGBEncoder
@@ -239,7 +237,7 @@ class MarigoldPipeline(nn.Module):
 
         # Denoising loop
         if show_pbar:
-            iterable = tqdm(enumerate(timesteps), total=len(timesteps))
+            iterable = tqdm(enumerate(timesteps), total=len(timesteps), leave=False, desc="denoising")
         else:
             iterable = enumerate(timesteps)
         for i, t in iterable:

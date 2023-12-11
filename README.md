@@ -6,7 +6,7 @@ This repository represents the official implementation of the paper titled "Repu
 [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02145)
 [![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing)
 [![Hugging Face Space](https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/toshas/marigold)
-[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)](https://huggingface.co/Bingxin/Marigold)
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-green)](https://huggingface.co/Bingxin/Marigold)
 [![License](https://img.shields.io/badge/License-CC_BY--NC--SA_4.0-929292)](LICENSE)
 <!-- [![Website](https://img.shields.io/badge/Project-Website-1081c2)](https://arxiv.org/abs/2312.02145) -->
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
@@ -100,6 +100,8 @@ python run.py \
   - `--n_infer`: Number of inference passes to be ensembled. Default: 10.
   - `--denoise_steps`: Number of diffusion denoising steps of each inference pass. Default: 10.
 
+- `--disable_xformers`: Disable efficient transformer on GPUs without Tensor Cores.
+- `--batch_size`: Batch size of repeated inference. Default: None (determin automatically).
 - `--seed`: Random seed, can be set to ensure reproducibility. Default: None (using current time as random seed).
 - `--depth_cmap`: Colormap used to colorize the depth prediction. Default: Spectral.
 
