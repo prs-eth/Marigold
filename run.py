@@ -14,10 +14,10 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 
-from src.model.marigold_pipeline import MarigoldPipeline
-from src.util.ensemble import ensemble_depths
-from src.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
-from src.util.seed_all import seed_all
+from marigold.model.marigold_pipeline import MarigoldPipeline
+from marigold.util.ensemble import ensemble_depths
+from marigold.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
+from marigold.util.seed_all import seed_all
 
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
