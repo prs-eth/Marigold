@@ -27,20 +27,24 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 ## 📢 News
 
 2023-12-08: Added 
-<a href="https://huggingface.co/spaces/toshas/marigold">
-    <img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16">
-</a> - try it out with your images for free!
-
-2023-12-05: Added 
-<a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing">
-    <img src="doc/badges/badge-colab.svg" height="16">
-</a> - dive deeper into our inference pipeline!
-
-2023-12-04: Added 
-<a href="https://arxiv.org/abs/2312.02145">
-    <img src="https://img.shields.io/badge/arXiv-PDF-b31b1b" height="16">
-</a>
+<a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> - try it out with your images for free!<br>
+2023-12-05: Added <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a> - dive deeper into our inference pipeline!<br>
+2023-12-04: Added <a href="https://arxiv.org/abs/2312.02145"><img src="https://img.shields.io/badge/arXiv-PDF-b31b1b" height="16"></a>
 paper and inference code (this repository).
+
+## Usage
+
+We offer a number of ways to interact with Marigold:
+
+1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
+
+2. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)): `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py` 
+
+3. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
+
+4. If you just want to just see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
+
+5. Finally, local development instructions are given below.
 
 
 ## 🛠️ Setup
