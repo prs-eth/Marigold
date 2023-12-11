@@ -198,7 +198,7 @@ if "__main__" == __name__:
 
             # Save as npy
             rgb_name_base = os.path.splitext(os.path.basename(rgb_path))[0]
-            pred_name_base = rgb_name_base + "_pred"
+            pred_name_base = rgb_name_base + ""
             save_to_npy = os.path.join(output_dir_npy, f"{pred_name_base}.npy")
             np.save(save_to_npy, depth_pred)
 
