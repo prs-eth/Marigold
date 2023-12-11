@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from PIL import Image
 from tqdm import tqdm
+import pyroexr
 
 from src.model.marigold_pipeline import MarigoldPipeline
 from src.util.ensemble import ensemble_depths
@@ -21,7 +22,7 @@ from src.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
 from src.util.seed_all import seed_all
 
 
-EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
+EXTENSION_LIST = [".jpg", ".jpeg", ".png", ".exr"]
 
 
 if "__main__" == __name__:
@@ -104,9 +105,9 @@ if "__main__" == __name__:
 
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
-    rgb_filename_list = [
+    rgb_filename_list = sorted([
         f for f in rgb_filename_list if os.path.splitext(f)[1].lower() in EXTENSION_LIST
-    ]
+    ])
     n_images = len(rgb_filename_list)
     if n_images > 0:
         print(f"Found {n_images} images")
@@ -125,8 +126,16 @@ if "__main__" == __name__:
 
         for rgb_path in tqdm(rgb_filename_list, desc=f"Estimating depth", leave=True):
             # Read input image
-            input_image = Image.open(rgb_path)
-            input_size = input_image.size
+            _, ext = os.path.splitext(rgb_path)
+            if ext.lower() == '.exr':
+                img = pyroexr.load(rgb_path)
+                exrnparray = np.dstack((img.channel('R'), img.channel('G'), img.channel('B')))
+                exrnparray = np.clip(exrnparray, 0, 1)
+                input_image = (exrnparray ** (1 / 2.2)).astype(np.float32)
+                input_size = (input_image.shape[1], input_image.shape[0])
+            else:
+                input_image = Image.open(rgb_path)
+                input_size = input_image.size
             
             # Resize image
             if resize_input:
@@ -135,13 +144,18 @@ if "__main__" == __name__:
                 )
 
             # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
-            input_image = input_image.convert('RGB')
-            
-            image = np.asarray(input_image)
+            if ext.lower() != '.exr':
+                input_image = input_image.convert('RGB')
+                image = np.asarray(input_image)
+            else:
+                image = input_image
 
             # Normalize rgb values
             rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
-            rgb_norm = rgb / 255.0
+            if ext.lower() != '.exr':
+                rgb_norm = rgb / 255.0
+            else:
+                rgb_norm = rgb
             rgb_norm = torch.from_numpy(rgb_norm).unsqueeze(0).float()
             rgb_norm = rgb_norm.to(device)
             assert rgb_norm.min() >= 0.0 and rgb_norm.max() <= 1.0
@@ -175,9 +189,12 @@ if "__main__" == __name__:
 
             # Resize back to original resolution
             if resize_back:
-                pred_img = Image.fromarray(depth_pred)
-                pred_img = pred_img.resize(input_size)
-                depth_pred = np.asarray(pred_img)
+                if ext.lower() != '.exr':
+                    pred_img = Image.fromarray(depth_pred)
+                    pred_img = pred_img.resize(input_size)
+                    depth_pred = np.asarray(pred_img)
+                else:
+                    depth_pred = cv2.resize(depth_pred, input_size, cv2.INTER_LINEAR).astype(np.float32)
 
             # Save as npy
             rgb_name_base = os.path.splitext(os.path.basename(rgb_path))[0]
