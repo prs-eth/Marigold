@@ -123,6 +123,10 @@ python run.py \
     --output_dir output/in-the-wild_example
 ```
 
+## ✏️ Contributing
+
+Please refer to [this](CONTRIBUTING.md) instruction.
+
 ## 🎓 Citation
 
 ```bibtex
