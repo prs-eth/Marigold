@@ -27,7 +27,7 @@ def inter_distances(arrays):
 def ensemble_depths(input_images, regularizer_strength=0.02, max_iter=2, tol=1e-3, reduction='median', max_res=None, disp=False, device='cuda'):
     """ 
     To ensemble multiple affine-invariant depth images (up to scale and shift),
-        by aligning estimating the sacle and shift
+        by aligning estimating the scale and shift
     """
     original_input = input_images.copy()
     n_img = input_images.shape[0]
