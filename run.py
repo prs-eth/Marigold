@@ -6,6 +6,7 @@
 
 import argparse
 import os
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '1'
 from glob import glob
 
 import cv2
@@ -88,10 +89,12 @@ if "__main__" == __name__:
     output_dir_color = os.path.join(output_dir, "depth_colored")
     output_dir_png = os.path.join(output_dir, "depth_bw")
     output_dir_npy = os.path.join(output_dir, "depth_npy")
+    output_dir_exr = os.path.join(output_dir, "depth_exr")
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(output_dir_color, exist_ok=True)
     os.makedirs(output_dir_png, exist_ok=True)
     os.makedirs(output_dir_npy, exist_ok=True)
+    os.makedirs(output_dir_exr, exist_ok=True)
     print(f"output dir: {output_dir}")
 
     # Device
@@ -181,6 +184,10 @@ if "__main__" == __name__:
             pred_name_base = rgb_name_base + "_pred"
             save_to_npy = os.path.join(output_dir_npy, f"{pred_name_base}.npy")
             np.save(save_to_npy, depth_pred)
+
+            # Save as exr
+            save_to_exr = os.path.join(output_dir_exr, f"{pred_name_base}.exr")
+            cv2.imwrite(save_to_exr, depth_pred)
 
             # Save as 16uint png
             save_to_png = os.path.join(output_dir_png, f"{pred_name_base}.png")
