@@ -3,6 +3,7 @@ import matplotlib
 import numpy as np
 import torch
 from PIL import Image
+import cv2
 
 def colorize_depth_maps(depth_map, min_depth, max_depth, cmap='Spectral', valid_mask=None):
     """
@@ -52,14 +53,21 @@ def chw2hwc(chw):
     return hwc
 
 
-def resize_max_res(img: Image.Image, max_edge_resolution):
-    original_width, original_height = img.size
-    downscale_factor = min(max_edge_resolution / original_width, max_edge_resolution / original_height)
-    
-    new_width = int(original_width * downscale_factor)
-    new_height = int(original_height * downscale_factor)
-    
-    resized_img = img.resize((new_width, new_height))
+def resize_max_res(img: Image.Image | np.ndarray, max_edge_resolution):
+    if type(img) == np.ndarray:
+        original_height, original_width = img.shape[:2]
+        downscale_factor = min(max_edge_resolution / original_width, max_edge_resolution / original_height)
+        new_width = int(original_width * downscale_factor)
+        new_height = int(original_height * downscale_factor)
+        resized_img = cv2.resize(img, (new_width, new_height), cv2.INTER_LINEAR)
+    else:
+        original_width, original_height = img.size
+        downscale_factor = min(max_edge_resolution / original_width, max_edge_resolution / original_height)
+        
+        new_width = int(original_width * downscale_factor)
+        new_height = int(original_height * downscale_factor)
+        
+        resized_img = img.resize((new_width, new_height))
     return resized_img
     
     
