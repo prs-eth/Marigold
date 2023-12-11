@@ -61,9 +61,8 @@ if "__main__" == __name__:
     output_dir = args.output_dir
 
     resize_to_max_res = args.resize_to_max_res
-    resize_input = ~args.not_resize_input
-    resize_back = ~args.not_resize_output if resize_input else False
-
+    resize_input = not args.not_resize_input
+    resize_back = not args.not_resize_output if resize_input else False
     n_repeat = args.n_infer
     assert n_repeat >= 1
     denoise_steps = args.denoise_steps
@@ -124,17 +123,18 @@ if "__main__" == __name__:
         for rgb_path in tqdm(rgb_filename_list, desc=f"Estimating depth", leave=True):
             # Read input image
             input_image = Image.open(rgb_path)
-
+            input_size = input_image.size
+            
             # Resize image
             if resize_input:
-                image = resize_max_res(
+                input_image = resize_max_res(
                     input_image, max_edge_resolution=resize_to_max_res
                 )
-            
+
             # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
-            image = image.convert('RGB')
+            input_image = input_image.convert('RGB')
             
-            image = np.asarray(image)
+            image = np.asarray(input_image)
 
             # Normalize rgb values
             rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
@@ -173,7 +173,7 @@ if "__main__" == __name__:
             # Resize back to original resolution
             if resize_back:
                 pred_img = Image.fromarray(depth_pred)
-                pred_img = pred_img.resize(input_image.size)
+                pred_img = pred_img.resize(input_size)
                 depth_pred = np.asarray(pred_img)
 
             # Save as npy
