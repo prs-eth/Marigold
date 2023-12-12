@@ -1,4 +1,4 @@
-## Contrubuting instructions
+## Contributing instructions
 
 We appreciate your interest in contributing. Please follow these guidelines:
 
@@ -12,4 +12,4 @@ We appreciate your interest in contributing. Please follow these guidelines:
 
 5. **Attribution:** Credit third-party code in your PR if used.
 
-Feel free to reach out for questions or assistance. Your contributions are valued, and we're excited to work together to enhance this project!
+Please, feel free to reach out for questions or assistance. Your contributions are valued, and we're excited to work together to enhance this project!
