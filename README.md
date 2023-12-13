@@ -34,7 +34,7 @@ paper and inference code (this repository).
 
 ## 🚀 Usage
 
-We offer a number of ways to interact with Marigold:
+We offer several ways to interact with Marigold:
 
 1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
 
@@ -42,14 +42,14 @@ We offer a number of ways to interact with Marigold:
 
 3. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
 
-4. If you just want to just see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
+4. If you just want to see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
 
 5. Finally, local development instructions are given below.
 
 
 ## 🛠️ Setup
 
-Windows users are stongly recommened to run with WSL2:
+Windows users are strongly recommended to run with WSL2:
 
 1. Install WSL following [installation guide](https://learn.microsoft.com/en-us/windows/wsl/install#install-wsl-command).
 1. Install CUDA support for WSL following [installation guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2).
@@ -74,9 +74,9 @@ We provide different ways to install dependencies.
 
 1. Using [Mamba](https://github.com/mamba-org/mamba), which can installed together with [Miniforge3](https://github.com/conda-forge/miniforge?tab=readme-ov-file#miniforge3) 
 
-    Windows users are recommended to install Linux version in WSL.
+    Windows users are recommended to install the Linux version in WSL.
 
-    Miniforge needs to be activated first, e.g. by `source /home/$USER/miniforge3/bin/activate` for default installation path.
+    Miniforge needs to be activated first, e.g. by `source /home/$USER/miniforge3/bin/activate` for the default installation path.
 
     ```bash
     mamba env create -n marigold --file environment.yaml
