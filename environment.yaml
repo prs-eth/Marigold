@@ -1,0 +1,16 @@
+name: marigold
+channels:
+  - conda-forge
+  - nvidia
+  - pytorch
+dependencies:
+  - accelerate>=0.22.0
+  - diffusers>=0.20.1
+  - matplotlib>=3.8.2
+  - scipy>=1.11.4
+  - python=3.10.12
+  - pytorch=2.0.1
+  - pytorch-cuda=11.7
+  - pip:
+    - transformers==4.32.1
+    - xformers==0.0.21

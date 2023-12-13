@@ -32,7 +32,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 2023-12-04: Added <a href="https://arxiv.org/abs/2312.02145"><img src="https://img.shields.io/badge/arXiv-PDF-b31b1b" height="16"></a>
 paper and inference code (this repository).
 
-## Usage
+## 🚀 Usage
 
 We offer a number of ways to interact with Marigold:
 
@@ -49,10 +49,17 @@ We offer a number of ways to interact with Marigold:
 
 ## 🛠️ Setup
 
+Windows users are stongly recommened to run with WSL2:
+
+1. Install WSL following [installation guide](https://learn.microsoft.com/en-us/windows/wsl/install#install-wsl-command).
+1. Install CUDA support for WSL following [installation guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2).
+1. Find your drives at `/mnt/<drive letter>/` and proceed. Check [WSL FAQ](https://learn.microsoft.com/en-us/windows/wsl/faq#how-do-i-access-my-c--drive-) for more details.
+
 This code has been tested on:
 
-- Python 3.10.12, PyTorch 2.0.1, CUDA 11.7, GeForce RTX 3090
-- Python 3.10.4, Pytorch 2.0.1, CUDA 11.7, GeForce RTX 4090
+- Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip, Mamba)
+- CentOS Linux 7, Python 3.10.4, CUDA 11.7, GeForce RTX 4090 (pip)
+- Windows 11 22H2, Python 3.10.12, CUDA 12.3, GeForce RTX 3080 (Mamba)
 
 ### 📦 Repository
 
@@ -63,11 +70,26 @@ cd Marigold
 
 ### 💻 Dependencies
 
-```bash
-python -m venv venv/marigold
-source venv/marigold/bin/activate
-pip install -r requirements.txt
-```
+We provide different ways to install dependencies.
+
+1. Using [Mamba](https://github.com/mamba-org/mamba), which can installed together with [Miniforge3](https://github.com/conda-forge/miniforge?tab=readme-ov-file#miniforge3) 
+
+    Windows users are recommended to install Linux version in WSL.
+
+    Miniforge needs to be activated first, e.g. by `source /home/$USER/miniforge3/bin/activate` for default installation path.
+
+    ```bash
+    mamba env create -n marigold --file environment.yaml
+    conda activate marigold  # or mamba activate marigold
+    ```
+
+2. Using pip
+
+    ```bash
+    python -m venv venv/marigold
+    source venv/marigold/bin/activate
+    pip install -r requirements.txt
+    ```
 
 ## 🚀 Inference on in-the-wild images
 
@@ -129,6 +151,14 @@ python run.py \
 
 Please refer to [this](CONTRIBUTING.md) instruction.
 
+## 🤔 Troubleshooting
+
+| Problem | Solution |
+| --- | --- |
+| Invalid DOS bash script on WSL | run `dos2unix <script_name>` to convert scripts into DOS format |
+| error on WSL: `Could not load library libcudnn_cnn_infer.so.8. Error: libcuda.so: cannot open shared object file: No such file or directory` | run `export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH` |
+
+
 ## 🎓 Citation
 
 ```bibtex
@@ -142,7 +172,7 @@ Please refer to [this](CONTRIBUTING.md) instruction.
 }
 ```
 
-## License
+## 🎫 License
 
 This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 
