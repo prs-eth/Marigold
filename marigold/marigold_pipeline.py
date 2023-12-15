@@ -1,7 +1,4 @@
-# Author: Bingxin Ke
-# Last modified: 2023-12-15
-
-from typing import List, Dict, Union
+from typing import Dict, Union
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -43,7 +40,7 @@ class MarigoldDepthOutput(BaseOutput):
 
 class MarigoldPipeline(DiffusionPipeline):
     """
-    Pipeline for monocular depth estimation using Marigold.
+    Pipeline for monocular depth estimation using Marigold: https://arxiv.org/abs/2312.02145.
 
     This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods the
     library implements for all the pipelines (such as downloading or saving, running on a particular device, etc.)
@@ -197,7 +194,7 @@ class MarigoldPipeline(DiffusionPipeline):
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
             depth_pred, pred_uncert = ensemble_depths(
-                depth_preds, **(ensemble_kwargs or {})
+                depth_preds, device=device, **(ensemble_kwargs or {})
             )
         else:
             depth_pred = depth_preds
@@ -217,9 +214,6 @@ class MarigoldPipeline(DiffusionPipeline):
             pred_img = Image.fromarray(depth_pred)
             pred_img = pred_img.resize(input_size)
             depth_pred = np.asarray(pred_img)
-
-        # Clip output range
-        depth_pred = depth_pred.clip(0, 1)
 
         # Colorize
         depth_colored = colorize_depth_maps(
