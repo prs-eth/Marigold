@@ -34,6 +34,9 @@ def find_batch_size(ensemble_size: int, input_res: int) -> int:
     Returns:
         int: Operating batch size
     """
+    if not torch.cuda.is_available():
+        return 1
+
     total_vram = torch.cuda.mem_get_info()[1] / 1024.0**3
 
     for settings in sorted(bs_search_table, key=lambda k: (k["res"], -k["total_vram"])):
@@ -44,4 +47,5 @@ def find_batch_size(ensemble_size: int, input_res: int) -> int:
             elif bs > math.ceil(ensemble_size / 2) and bs < ensemble_size:
                 bs = math.ceil(ensemble_size / 2)
             return bs
+
     return 1
