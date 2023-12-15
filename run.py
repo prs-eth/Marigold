@@ -1,89 +1,119 @@
 # Script for inference on (in-the-wild) images
 
 # Author: Bingxin Ke
-# Last modified: 2023-12-11
+# Last modified: 2023-12-15
 
 
 import argparse
 import os
 from glob import glob
+import logging
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, TensorDataset
 from PIL import Image
 from tqdm.auto import tqdm
 
-from src.model.marigold_pipeline import MarigoldPipeline
-from src.util.ensemble import ensemble_depths
-from src.util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
-from src.util.seed_all import seed_all
-from src.util.batchsize import find_batch_size
+
+from marigold import MarigoldPipeline
+from marigold.util.seed_all import seed_all
 
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
 
 
 if "__main__" == __name__:
+    logging.basicConfig(level=logging.INFO)
+
     # -------------------- Arguments --------------------
-    parser = argparse.ArgumentParser(description="Run single-image depth estimation using Marigold.")
-    parser.add_argument("--checkpoint", type=str, default="Bingxin/Marigold", help="Checkpoint path or hub name.")
+    parser = argparse.ArgumentParser(
+        description="Run single-image depth estimation using Marigold."
+    )
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        default="Bingxin/Marigold",
+        help="Checkpoint path or hub name.",
+    )
 
-    parser.add_argument("--input_rgb_dir", type=str, required=True, help="Path to the input image folder.")
+    parser.add_argument(
+        "--input_rgb_dir",
+        type=str,
+        required=True,
+        help="Path to the input image folder.",
+    )
 
-    parser.add_argument("--output_dir", type=str, required=True, help="Output directory.")
-
-    parser.add_argument("--batch_size", type=int, default=None, help="Inference batch size. Default: None (will be set automatically).")
-
-    parser.add_argument("--disable_xformers", action="store_true", help="Disable xformers on GPUs without Tensor Cores")
-
-    # resolution setting
-    parser.add_argument("--resize_to_max_res", type=int, default=768, help="Resize the input image a max width/height while keeping aspect ratio. Only work when --resize_input is applied. Default: 768.")
-    parser.add_argument("--not_resize_input", action="store_true", help="Use the original input resolution. Default: False.")
-    parser.add_argument("--not_resize_output", action="store_true", help="When input is resized, out put depth at resized resolution. Default: False.")
+    parser.add_argument(
+        "--output_dir", type=str, required=True, help="Output directory."
+    )
 
     # inference setting
-    parser.add_argument("--n_infer", type=int, default=10, help="Number of inferences to be ensembled, more inference gives better results but runs slower.")
-    parser.add_argument("--denoise_steps", type=int, default=10, help="Inference denoising steps, more stepts results in higher accuracy but slower inference speed.")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed.")
+    parser.add_argument(
+        "--denoise_steps",
+        type=int,
+        default=10,
+        help="Diffusion denoising steps, more stepts results in higher accuracy but slower inference speed.",
+    )
+    parser.add_argument(
+        "--ensemble_size",
+        type=int,
+        default=10,
+        help="Number of predictions to be ensembled, more inference gives better results but runs slower.",
+    )
 
-    # test-time ensembling
-    parser.add_argument("--merging_max_res", type=int, default=None, help="Ensembling parameter, max resolution when ensembling, suggest setting to <800.")
-    parser.add_argument("--regularizer_strength", type=float, default=0.02, help="Ensembling parameter, weight of optimization regularizer.")
-    parser.add_argument("--tol", type=float, default=1e-3, help="Ensembling parameter, error tolorance.")
-    parser.add_argument("--reduction_method", choices=["mean", "median"], default="median", help="Ensembling parameter, method to merge aligned depth maps.")
-    parser.add_argument("--max_iter", type=int, default=5, help="Ensembling parameter, max optimization iterations.")
-    
+    # resolution setting
+    parser.add_argument(
+        "--processing_res",
+        type=int,
+        default=768,
+        help="Maximum resolution of processing. 0 for using input image resolution. Default: 768.",
+    )
+    parser.add_argument(
+        "--output_processing_res",
+        action="store_true",
+        help="When input is resized, out put depth at resized operating resolution. Default: False.",
+    )
+
     # depth map colormap
-    parser.add_argument("--depth_cmap", type=str, default="Spectral", help="Colormap used to render depth predictions.")
+    parser.add_argument(
+        "--color_map",
+        type=str,
+        default="Spectral",
+        help="Colormap used to render depth predictions.",
+    )
+
+    # other settings
+    parser.add_argument("--seed", type=int, default=None, help="Random seed.")
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=0,
+        help="Inference batch size. Default: 0 (will be set automatically).",
+    )
+    parser.add_argument(
+        "--apple_silicon",
+        action="store_true",
+        help="Flag of running on Apple Silicon.",
+    )
 
     args = parser.parse_args()
 
     checkpoint_path = args.checkpoint
-
     input_rgb_dir = args.input_rgb_dir
-
     output_dir = args.output_dir
 
-    batch_size = args.batch_size
-
-    disable_xformers = args.disable_xformers
-
-    resize_to_max_res = args.resize_to_max_res
-    resize_input = not args.not_resize_input
-    resize_back = not args.not_resize_output if resize_input else False
-    n_repeat = args.n_infer
-    assert n_repeat >= 1
     denoise_steps = args.denoise_steps
+    ensemble_size = args.ensemble_size
+
+    processing_res = args.processing_res
+    match_input_res = not args.output_processing_res
+
+    color_map = args.color_map
     seed = args.seed
-
-    merging_max_res = args.merging_max_res
-    regularizer_strength = args.regularizer_strength
-    max_iter = args.max_iter
-    reduction_method = args.reduction_method
-    tol = args.tol
-
-    depth_cmap = args.depth_cmap
+    batch_size = args.batch_size
+    apple_silicon = args.apple_silicon
+    if apple_silicon and 0 == batch_size:
+        batch_size = 1  # set default batchsize
 
     # -------------------- Preparation --------------------
     # Random seed
@@ -101,12 +131,18 @@ if "__main__" == __name__:
     os.makedirs(output_dir_color, exist_ok=True)
     os.makedirs(output_dir_tif, exist_ok=True)
     os.makedirs(output_dir_npy, exist_ok=True)
-    print(f"output dir: {output_dir}")
+    logging.info(f"output dir: {output_dir}")
 
     # Device
-    cuda_avail = torch.cuda.is_available()
-    device = torch.device("cuda" if cuda_avail else "cpu")
-    print(f"device = {device}")
+    if apple_silicon:
+        if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+            device = torch.device("mps:0")
+        else:
+            logging.error("MPS is not available")
+            exit(1)
+    else:
+        device = torch.device("cpu" if not torch.cuda.is_available() else "cuda")
+    logging.info(f"device = {device}")
 
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
@@ -116,15 +152,20 @@ if "__main__" == __name__:
     rgb_filename_list = sorted(rgb_filename_list)
     n_images = len(rgb_filename_list)
     if n_images > 0:
-        print(f"Found {n_images} images")
+        logging.info(f"Found {n_images} images")
     else:
-        raise RuntimeError(f"No image found in '{input_rgb_dir}'")
+        logging.error(f"No image found in '{input_rgb_dir}'")
+        exit(1)
 
     # -------------------- Model --------------------
-    model = MarigoldPipeline.from_pretrained(checkpoint_path, enable_xformers=(not disable_xformers))
+    pipe = MarigoldPipeline.from_pretrained(checkpoint_path)
+    try:
+        import xformers
+        pipe.enable_xformers_memory_efficient_attention()
+    except:
+        pass  # run without xformers
 
-    model = model.to(device)
-    model.unet.eval()
+    pipe = pipe.to(device)
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
@@ -133,103 +174,41 @@ if "__main__" == __name__:
         for rgb_path in tqdm(rgb_filename_list, desc=f"Estimating depth", leave=True):
             # Read input image
             input_image = Image.open(rgb_path)
-            input_size = input_image.size
 
-            # Resize image
-            if resize_input:
-                input_image = resize_max_res(
-                    input_image, max_edge_resolution=resize_to_max_res
-                )
+            # Predict depth
+            pipe_out = pipe(
+                input_image,
+                denoising_steps=denoise_steps,
+                ensemble_size=ensemble_size,
+                processing_res=processing_res,
+                match_input_res=match_input_res,
+                batch_size=batch_size,
+                color_map=color_map,
+                show_progress_bar=True,
+            )
 
-            # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
-            input_image = input_image.convert("RGB")
-
-            image = np.asarray(input_image)
-
-            # Normalize rgb values
-            rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
-            rgb_norm = rgb / 255.0
-            rgb_norm = torch.from_numpy(rgb_norm).float()
-            rgb_norm = rgb_norm.to(device)
-            assert rgb_norm.min() >= 0.0 and rgb_norm.max() <= 1.0
-
-            # Batch repeated input image
-            duplicated_rgb = torch.stack([rgb_norm] * n_repeat)
-            single_rgb_dataset = TensorDataset(duplicated_rgb)
-            if batch_size is None:
-                _bs = find_batch_size(n_repeat=n_repeat, input_res=max(rgb_norm.shape[1:]))
-            else:
-                _bs = batch_size
-
-            single_rgb_loader = DataLoader(single_rgb_dataset, batch_size=_bs, shuffle=False)
-
-            # Predict depth maps (batched)
-            depth_pred_ls = []
-            for batch in tqdm(single_rgb_loader, desc="multiple inference", leave=False):
-                (batched_img,) = batch
-                depth_pred_raw = model.forward(
-                    batched_img,
-                    num_inference_steps=denoise_steps,
-                    init_depth_latent=None,
-                    show_pbar=True
-                )
-                # clip prediction
-                depth_pred_raw = torch.clip(depth_pred_raw, -1.0, 1.0)
-                # shift to [0, 1]
-                depth_pred_raw = depth_pred_raw * 2.0 - 1.0
-                depth_pred_ls.append(depth_pred_raw.detach().clone())
-
-            depth_preds = torch.concat(depth_pred_ls, axis=0).squeeze()
-            torch.cuda.empty_cache()  # clear vram cache for ensembling
-
-            # Test-time ensembling
-            if n_repeat > 1:
-                depth_pred, pred_uncert = ensemble_depths(
-                    depth_preds,
-                    regularizer_strength=regularizer_strength,
-                    max_iter=max_iter,
-                    tol=tol,
-                    reduction=reduction_method,
-                    max_res=merging_max_res,
-                    device=device,
-                )
-            else:
-                depth_pred = depth_preds
-            
-            # Convert to numpy for saving
-            depth_pred = depth_pred.cpu().numpy()
-
-            # Resize back to original resolution
-            if resize_back:
-                pred_img = Image.fromarray(depth_pred)
-                pred_img = pred_img.resize(input_size)
-                depth_pred = np.asarray(pred_img)
+            depth_pred: np.ndarray = pipe_out.depth_np
+            depth_colored: Image.Image = pipe_out.depth_colored
 
             # Save as npy
             rgb_name_base = os.path.splitext(os.path.basename(rgb_path))[0]
             pred_name_base = rgb_name_base + "_pred"
-            save_to_npy = os.path.join(output_dir_npy, f"{pred_name_base}.npy")
-            np.save(save_to_npy, depth_pred)
+            npy_save_path = os.path.join(output_dir_npy, f"{pred_name_base}.npy")
+            if os.path.exists(npy_save_path):
+                logging.warning(f"Existing file: '{npy_save_path}' will be overwritten")
+            np.save(npy_save_path, depth_pred)
 
             # Save as 16-bit uint png
-            save_to_png = os.path.join(output_dir_tif, f"{pred_name_base}.png")
-            # scale prediction to [0, 1]
-            min_d = np.min(depth_pred)
-            max_d = np.max(depth_pred)
-            depth_to_save = (depth_pred - min_d) / (max_d - min_d)
-            depth_to_save = (depth_to_save * 65535.0).astype(np.uint16)
-            Image.fromarray(depth_to_save).save(save_to_png, mode="I;16")
+            depth_to_save = (depth_pred * 65535.0).astype(np.uint16)
+            png_save_path = os.path.join(output_dir_tif, f"{pred_name_base}.png")
+            if os.path.exists(png_save_path):
+                logging.warning(f"Existing file: '{png_save_path}' will be overwritten")
+            Image.fromarray(depth_to_save).save(png_save_path, mode="I;16")
 
             # Colorize
-            percentile = 0.03
-            min_depth_pct = np.percentile(depth_pred, percentile)
-            max_depth_pct = np.percentile(depth_pred, 100 - percentile)
-            save_to_color = os.path.join(
+            colored_save_path = os.path.join(
                 output_dir_color, f"{pred_name_base}_colored.png"
             )
-            depth_colored = colorize_depth_maps(
-                depth_pred, min_depth_pct, max_depth_pct, cmap=depth_cmap
-            ).squeeze()  # [3, H, W], value in (0, 1)
-            depth_colored = (depth_colored * 255).astype(np.uint8)
-            depth_colored_hwc = chw2hwc(depth_colored)
-            Image.fromarray(depth_colored_hwc).save(save_to_color)
+            if os.path.exists(colored_save_path):
+                logging.warning(f"Existing file: '{colored_save_path}' will be overwritten")
+            depth_colored.save(colored_save_path)

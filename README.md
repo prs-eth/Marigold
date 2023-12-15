@@ -26,7 +26,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 
 ## 📢 News
 
-2023-12-08: Added 
+2023-12-08: Added
 <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> - try it out with your images for free!<br>
 2023-12-05: Added <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a> - dive deeper into our inference pipeline!<br>
 2023-12-04: Added <a href="https://arxiv.org/abs/2312.02145"><img src="https://img.shields.io/badge/arXiv-PDF-b31b1b" height="16"></a>
@@ -46,22 +46,26 @@ We offer several ways to interact with Marigold:
 
 5. Finally, local development instructions are given below.
 
-
 ## 🛠️ Setup
 
-Windows users are strongly recommended to run with WSL2:
-
-1. Install WSL following [installation guide](https://learn.microsoft.com/en-us/windows/wsl/install#install-wsl-command).
-1. Install CUDA support for WSL following [installation guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2).
-1. Find your drives at `/mnt/<drive letter>/` and proceed. Check [WSL FAQ](https://learn.microsoft.com/en-us/windows/wsl/faq#how-do-i-access-my-c--drive-) for more details.
-
-This code has been tested on:
+This code was tested on:
 
 - Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip, Mamba)
 - CentOS Linux 7, Python 3.10.4, CUDA 11.7, GeForce RTX 4090 (pip)
 - Windows 11 22H2, Python 3.10.12, CUDA 12.3, GeForce RTX 3080 (Mamba)
+- MacOS 14.2, Python 3.10.12, M1 16G (pip)
+
+### 🪟 A Note for Windows users
+
+We recommend running the code in WSL2:
+
+1. Install WSL following [installation guide](https://learn.microsoft.com/en-us/windows/wsl/install#install-wsl-command).
+1. Install CUDA support for WSL following [installation guide](https://docs.nvidia.com/cuda/wsl-user-guide/index.html#cuda-support-for-wsl-2).
+1. Find your drives in `/mnt/<drive letter>/`; check [WSL FAQ](https://learn.microsoft.com/en-us/windows/wsl/faq#how-do-i-access-my-c--drive-) for more details. Navigate to the working directory of choice. 
 
 ### 📦 Repository
+
+Clone the repository (requires git):
 
 ```bash
 git clone https://github.com/prs-eth/Marigold.git
@@ -70,20 +74,23 @@ cd Marigold
 
 ### 💻 Dependencies
 
-We provide different ways to install dependencies.
+We provide several ways to install the dependencies.
 
-1. Using [Mamba](https://github.com/mamba-org/mamba), which can installed together with [Miniforge3](https://github.com/conda-forge/miniforge?tab=readme-ov-file#miniforge3) 
+1. **Using [Mamba](https://github.com/mamba-org/mamba)**, which can installed together with [Miniforge3](https://github.com/conda-forge/miniforge?tab=readme-ov-file#miniforge3). 
 
-    Windows users are recommended to install the Linux version in WSL.
+    Windows users: Install the Linux version into the WSL.
 
-    Miniforge needs to be activated first, e.g. by `source /home/$USER/miniforge3/bin/activate` for the default installation path.
+    After the installation, Miniforge needs to be activated first: `source /home/$USER/miniforge3/bin/activate`.
+
+    Create the environment and install dependencies into it:
 
     ```bash
     mamba env create -n marigold --file environment.yaml
-    conda activate marigold  # or mamba activate marigold
+    conda activate marigold
     ```
 
-2. Using pip
+2. **Using pip:** 
+    Alternatively, create a Python native virtual environment and install dependencies into it:
 
     ```bash
     python -m venv venv/marigold
@@ -91,59 +98,70 @@ We provide different ways to install dependencies.
     pip install -r requirements.txt
     ```
 
-## 🚀 Inference on in-the-wild images
+Keep the environment activated before running the inference script. 
+Activate the environment again after restarting the terminal session.
 
-### 📷 Sample images
+## 🚀 Testing on your images
 
+### 📷 Prepare images
+
+If you have images at hand, skip this step. Otherwise, download a few select images from our paper:
 ```bash
 bash script/download_sample_data.sh
 ```
 
-### 🎮 Inference
+### 🎮 Run inference
 
-This script will automatically download the [checkpoint](https://huggingface.co/Bingxin/Marigold).
+Place your images in a directory, for example, under `input/in-the-wild_example`, and run the following command:
 
 ```bash
 python run.py \
-    --input_rgb_dir data/in-the-wild_example \
+    --input_rgb_dir input/in-the-wild_example \
     --output_dir output/in-the-wild_example
 ```
 
+You can find all results in `output/in-the-wild_example`. Enjoy!
+
 ### ⚙️ Inference settings
 
-- The inference script by default will resize the input images and resize back to the original resolution.
+The default settings are optimized for the best result. However, the behavior of the code can be customized:
+
+- Trade-offs between the **accuracy** and **speed** (for both options, larger values result in better accuracy at the cost of slower inference.)
+
+  - `--ensemble_size`: Number of inference passes in the ensemble. Default: 10.
+  - `--denoise_steps`: Number of denoising steps of each inference pass. Default: 10.
+
+- By default, the inference script resizes input images to the *processing resolution*, and then resizes the prediction back to the original resolution. This gives the best quality, as Stable Diffusion, from which Marigold is derived, performs best at 768x768 resolution.  
   
-  - `--resize_to_max_res`: The maximum edge length of resized input image. Default: 768.
-  - `--not_resize_input`: If given, will not resize the input image.
-  - `--not_resize_output`: If given, will not resize the output image back to the original resolution. Only valid without `--not_resize_input` option.
+  - `--processing_res`: the processing resolution; set 0 to process the input resolution directly. Default: 768.
+  - `--output_processing_res`: produce output at the processing resolution instead of upsampling it to the input resolution. Default: False.
 
-- Trade-offs between **accuracy** and **speed** (for both options, larger value results in more accurate results at the cost of slower inference speed.)
+- `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (using current time as random seed).
+- `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
+- `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral.
+- `--apple_silicon`: Use Apple Silicon MPS acceleration.
 
-  - `--n_infer`: Number of inference passes to be ensembled. Default: 10.
-  - `--denoise_steps`: Number of diffusion denoising steps of each inference pass. Default: 10.
+### ⬇ Checkpoint cache
 
-- `--disable_xformers`: Disable efficient transformer on GPUs without Tensor Cores.
-- `--batch_size`: Batch size of repeated inference. Default: None (determin automatically).
-- `--seed`: Random seed, can be set to ensure reproducibility. Default: None (using current time as random seed).
-- `--depth_cmap`: Colormap used to colorize the depth prediction. Default: Spectral.
-
-- The model cache directory can be controlled by environment variable `HF_HOME`, for example:
-
-    ```bash
-    export HF_HOME=$(pwd)/checkpoint
-    ```
-
-### ⬇ Using local checkpoint
+By default, the [checkpoint](https://huggingface.co/Bingxin/Marigold) is stored in the Hugging Face cache.
+The `HF_HOME` environment variable defines its location and can be overridden:
 
 ```bash
-# Download checkpoint
+export HF_HOME=new/path
+```
+
+Alternatively, use the following script to download the checkpoint weights locally:
+
+```bash
 bash script/download_weights.sh
 ```
 
+At inference, specify the checkpoint path:
+
 ```bash
 python run.py \
-    --checkpoint checkpoint/Marigold_v1_merged \
-    --input_rgb_dir data/in-the-wild_example\
+    --checkpoint checkpoint/Marigold_v1_merged_2 \
+    --input_rgb_dir input/in-the-wild_example\
     --output_dir output/in-the-wild_example
 ```
 
@@ -153,13 +171,15 @@ Please refer to [this](CONTRIBUTING.md) instruction.
 
 ## 🤔 Troubleshooting
 
-| Problem | Solution |
-| --- | --- |
-| Invalid DOS bash script on WSL | run `dos2unix <script_name>` to convert scripts into DOS format |
-| error on WSL: `Could not load library libcudnn_cnn_infer.so.8. Error: libcuda.so: cannot open shared object file: No such file or directory` | run `export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH` |
-
+| Problem                                                                                                                                      | Solution                                                       |
+|----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| (Windows) Invalid DOS bash script on WSL                                                                                                     | Run `dos2unix <script_name>` to convert script format          |
+| (Windows) error on WSL: `Could not load library libcudnn_cnn_infer.so.8. Error: libcuda.so: cannot open shared object file: No such file or directory` | Run `export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH` |
+| (Mac) Mamba could not solve for environment specs because of `pytorch-cuda 11.7`. | Use pip install or remove `pytorch-cuda=11.7` from `environment.yaml`.
 
 ## 🎓 Citation
+
+Please cite our paper:
 
 ```bibtex
 @misc{ke2023repurposing,

@@ -2,6 +2,7 @@
 # ignore these folders
 checkpoint/
 data/
+input/
 output/
 temp/
 wandb/

@@ -6,11 +6,13 @@ ckpt_dir=${ckpt_dir:-checkpoint}
 mkdir -p $ckpt_dir
 cd $ckpt_dir
 
-if [ -d Marigold_v1_merged ]; then
+checkpoint_name=Marigold_v1_merged_2
+
+if [ -d $checkpoint_name ]; then
     exit 0
 fi
 
-wget -nv --show-progress https://share.phys.ethz.ch/~pf/bingkedata/marigold/Marigold_v1_merged.tar
+wget -nv --show-progress https://share.phys.ethz.ch/~pf/bingkedata/marigold/${checkpoint_name}.tar
 
-tar -xf Marigold_v1_merged.tar
-rm Marigold_v1_merged.tar
+tar -xf ${checkpoint_name}.tar
+rm ${checkpoint_name}.tar

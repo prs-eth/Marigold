@@ -2,7 +2,7 @@
 set -e
 set -x
 
-data_dir=data
+data_dir=input
 mkdir -p $data_dir
 cd $data_dir
 
