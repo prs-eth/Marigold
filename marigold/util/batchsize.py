@@ -1,5 +1,5 @@
 # Author: Bingxin Ke
-# Last modified: 2023-12-11
+# Last modified: 2023-12-15
 
 import torch
 import math
@@ -23,15 +23,25 @@ bs_search_table = [
 ]
 
 
-def find_batch_size(n_repeat, input_res):
+def find_batch_size(ensemble_size: int, input_res: int) -> int:
+    """
+    Automatically search for suitable operating batch size.
+
+    Args:
+        ensemble_size (int): Number of predictions to be ensembled
+        input_res (int): Operating resolution of the input image.
+
+    Returns:
+        int: Operating batch size
+    """
     total_vram = torch.cuda.mem_get_info()[1] / 1024.0**3
 
     for settings in sorted(bs_search_table, key=lambda k: (k["res"], -k["total_vram"])):
         if input_res <= settings["res"] and total_vram >= settings["total_vram"]:
             bs = settings["bs"]
-            if bs > n_repeat:
-                bs = n_repeat
-            elif bs > math.ceil(n_repeat / 2) and bs < n_repeat:
-                bs = math.ceil(n_repeat / 2)
+            if bs > ensemble_size:
+                bs = ensemble_size
+            elif bs > math.ceil(ensemble_size / 2) and bs < ensemble_size:
+                bs = math.ceil(ensemble_size / 2)
             return bs
     return 1

@@ -138,11 +138,15 @@ if "__main__" == __name__:
         if torch.backends.mps.is_available() and torch.backends.mps.is_built():
             device = torch.device("mps:0")
         else:
-            logging.error("MPS is not available")
-            exit(1)
+            device = torch.device("cpu")
+            logging.warning("MPS is not available. Running on CPU will be slow.")
     else:
-        device = torch.device("cpu" if not torch.cuda.is_available() else "cuda")
-    logging.info(f"device = {device}")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        else:
+            device = torch.device("cpu")
+            logging.warning("CUDA is not available. Running on CPU will be slow.")
+    logging.info(f"device: {device}")
 
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))

@@ -8,7 +8,7 @@ import torch
 from scipy.optimize import minimize
 
 
-def inter_distances(tensors):
+def inter_distances(tensors: torch.Tensor):
     """
     To calculate the distance between each two depth maps.
     """
@@ -22,13 +22,12 @@ def inter_distances(tensors):
 
 
 def ensemble_depths(
-    input_images,
-    regularizer_strength=0.02,
-    max_iter=2,
-    tol=1e-3,
-    reduction="median",
-    max_res=None,
-    disp=False,
+    input_images: torch.Tensor,
+    regularizer_strength: float = 0.02,
+    max_iter: int = 2,
+    tol: float = 1e-3,
+    reduction: str = "median",
+    max_res: int = None,
 ):
     """
     To ensemble multiple affine-invariant depth images (up to scale and shift),
@@ -84,7 +83,7 @@ def ensemble_depths(
         return err
 
     res = minimize(
-        closure, x, method="BFGS", tol=tol, options={"maxiter": max_iter, "disp": disp}
+        closure, x, method="BFGS", tol=tol, options={"maxiter": max_iter, "disp": False}
     )
     x = res.x
     x = x.astype(dtype)

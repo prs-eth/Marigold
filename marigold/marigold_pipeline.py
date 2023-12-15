@@ -1,4 +1,7 @@
-from typing import Dict, Union
+# Author: Bingxin Ke
+# Last modified: 2023-12-15
+
+from typing import List, Dict, Union
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -30,7 +33,7 @@ class MarigoldDepthOutput(BaseOutput):
         depth_colored (PIL.Image.Image):
             Colorized depth map, with the shape of [3, H, W] and values in [0, 1]
         uncertainty (None` or `np.ndarray):
-            Uncalibrated uncertainty(MAD, median absolute deviation) comming from ensembing.
+            Uncalibrated uncertainty(MAD, median absolute deviation) coming from ensembling.
     """
 
     depth_np: np.ndarray
@@ -52,7 +55,7 @@ class MarigoldPipeline(DiffusionPipeline):
             Variational Auto-Encoder (VAE) Model to encode and decode images and depth maps
             to and from latent representations.
         scheduler (DDIMScheduler):
-            A scheduler to be used in combination with `unet` to denoise the encoded image latens.
+            A scheduler to be used in combination with `unet` to denoise the encoded image latents.
         text_encoder (CLIPTextModel):
             Text-encoder, for empty text embedding.
         tokenizer (CLIPTokenizer):
@@ -110,14 +113,15 @@ class MarigoldPipeline(DiffusionPipeline):
                 Only valid if `limit_input_res` is not None.
                 Defaults to True.
             denoising_steps (int, optional):
-                Number of diffusion denoisign steps (DDIM) during inference.
+                Number of diffusion denoising steps (DDIM) during inference.
                 Defaults to 10.
             ensemble_size (int, optional):
                 Number of predictions to be ensembled.
                 Defaults to 10.
             batch_size (int, optional):
                 Inference batch size, no bigger than `num_ensemble`.
-                Defaults to None.
+                If set to 0, the script will automatically decide the proper batch size.
+                Defaults to 0.
             show_progress_bar (bool, optional):
                 Display a progress bar of diffusion denoising.
                 Defaults to True.
@@ -165,7 +169,7 @@ class MarigoldPipeline(DiffusionPipeline):
             _bs = batch_size
         else:
             _bs = find_batch_size(
-                n_repeat=ensemble_size, input_res=max(rgb_norm.shape[1:])
+                ensemble_size=ensemble_size, input_res=max(rgb_norm.shape[1:])
             )
 
         single_rgb_loader = DataLoader(
@@ -194,7 +198,7 @@ class MarigoldPipeline(DiffusionPipeline):
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
             depth_pred, pred_uncert = ensemble_depths(
-                depth_preds, device=device, **(ensemble_kwargs or {})
+                depth_preds, **(ensemble_kwargs or {})
             )
         else:
             depth_pred = depth_preds
@@ -206,7 +210,7 @@ class MarigoldPipeline(DiffusionPipeline):
         max_d = torch.max(depth_pred)
         depth_pred = (depth_pred - min_d) / (max_d - min_d)
 
-        # Convert to numpy for saving
+        # Convert to numpy
         depth_pred = depth_pred.cpu().numpy()
 
         # Resize back to original resolution
@@ -214,6 +218,9 @@ class MarigoldPipeline(DiffusionPipeline):
             pred_img = Image.fromarray(depth_pred)
             pred_img = pred_img.resize(input_size)
             depth_pred = np.asarray(pred_img)
+
+        # Clip output range
+        depth_pred = depth_pred.clip(0, 1)
 
         # Colorize
         depth_colored = colorize_depth_maps(
@@ -273,7 +280,7 @@ class MarigoldPipeline(DiffusionPipeline):
         # Initial depth map (noise)
         depth_latent = torch.randn(rgb_latent.shape, device=device)  # [B, 4, h, w]
 
-        # Batched empty text embeding
+        # Batched empty text embedding
         if self.empty_text_embed is None:
             self.__encode_empty_text()
         batch_empty_text_embed = self.empty_text_embed.repeat(
@@ -313,7 +320,8 @@ class MarigoldPipeline(DiffusionPipeline):
         return depth
 
     def encode_rgb(self, rgb_in: torch.Tensor) -> torch.Tensor:
-        """_summary_
+        """
+        Encode RGB image into latent.
 
         Args:
             rgb_in (torch.Tensor):
@@ -331,7 +339,8 @@ class MarigoldPipeline(DiffusionPipeline):
         return rgb_latent
 
     def decode_depth(self, depth_latent: torch.Tensor) -> torch.Tensor:
-        """Decode depth latent into depth map.
+        """
+        Decode depth latent into depth map.
 
         Args:
             depth_latent (torch.Tensor):

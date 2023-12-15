@@ -175,7 +175,7 @@ Please refer to [this](CONTRIBUTING.md) instruction.
 |----------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | (Windows) Invalid DOS bash script on WSL                                                                                                     | Run `dos2unix <script_name>` to convert script format          |
 | (Windows) error on WSL: `Could not load library libcudnn_cnn_infer.so.8. Error: libcuda.so: cannot open shared object file: No such file or directory` | Run `export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH` |
-| (Mac) Mamba could not solve for environment specs because of `pytorch-cuda 11.7`. | Use pip install or remove `pytorch-cuda=11.7` from `environment.yaml`.
+
 
 ## 🎓 Citation
 
