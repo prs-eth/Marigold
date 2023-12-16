@@ -22,7 +22,7 @@ from marigold.util.seed_all import seed_all
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
 
 
-if "__main__" == __name__:
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     # -------------------- Arguments --------------------
@@ -95,6 +95,11 @@ if "__main__" == __name__:
         action="store_true",
         help="Flag of running on Apple Silicon.",
     )
+    parser.add_argument(
+        "--fp16",
+        action="store_true",
+        help="Load model in float16 format to save VRAM. Default: False."
+    )
 
     args = parser.parse_args()
 
@@ -114,6 +119,7 @@ if "__main__" == __name__:
     apple_silicon = args.apple_silicon
     if apple_silicon and 0 == batch_size:
         batch_size = 1  # set default batchsize
+    fp16 = args.fp16
 
     # -------------------- Preparation --------------------
     # Random seed
@@ -147,6 +153,8 @@ if "__main__" == __name__:
             device = torch.device("cpu")
             logging.warning("CUDA is not available. Running on CPU will be slow.")
     logging.info(f"device: {device}")
+    if device == torch.device("cpu"):
+        assert not fp16, "Value error: `fp16` cannot be used when the CPU is the device."
 
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
@@ -162,7 +170,8 @@ if "__main__" == __name__:
         exit(1)
 
     # -------------------- Model --------------------
-    pipe = MarigoldPipeline.from_pretrained(checkpoint_path)
+    dtype = torch.float16 if fp16 else torch.float32
+    pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
     try:
         import xformers
         pipe.enable_xformers_memory_efficient_attention()

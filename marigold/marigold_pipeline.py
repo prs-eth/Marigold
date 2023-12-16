@@ -157,7 +157,7 @@ class MarigoldPipeline(DiffusionPipeline):
         # Normalize rgb values
         rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
         rgb_norm = rgb / 255.0
-        rgb_norm = torch.from_numpy(rgb_norm).float()
+        rgb_norm = torch.from_numpy(rgb_norm).to(self.vae.dtype)
         rgb_norm = rgb_norm.to(device)
         assert rgb_norm.min() >= 0.0 and rgb_norm.max() <= 1.0
 
@@ -211,7 +211,7 @@ class MarigoldPipeline(DiffusionPipeline):
         depth_pred = (depth_pred - min_d) / (max_d - min_d)
 
         # Convert to numpy
-        depth_pred = depth_pred.cpu().numpy()
+        depth_pred = depth_pred.cpu().numpy().astype(np.float32)
 
         # Resize back to original resolution
         if match_input_res:
@@ -278,7 +278,7 @@ class MarigoldPipeline(DiffusionPipeline):
         rgb_latent = self.encode_rgb(rgb_in)
 
         # Initial depth map (noise)
-        depth_latent = torch.randn(rgb_latent.shape, device=device)  # [B, 4, h, w]
+        depth_latent = torch.randn(rgb_latent.shape, device=device, dtype=rgb_latent.dtype)  # [B, 4, h, w]
 
         # Batched empty text embedding
         if self.empty_text_embed is None:
