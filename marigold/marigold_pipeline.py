@@ -280,7 +280,7 @@ class MarigoldPipeline(DiffusionPipeline):
             rgb_in (torch.Tensor):
                 Input RGB image.
             num_inference_steps (int):
-                Number of diffusion denoisign steps (DDIM) during inference.
+                Number of diffusion denoising steps (DDIM) during inference.
             show_pbar (bool):
                 Display a progress bar of diffusion denoising.
 
@@ -331,7 +331,7 @@ class MarigoldPipeline(DiffusionPipeline):
 
             # compute the previous noisy sample x_t -> x_t-1
             depth_latent = self.scheduler.step(noise_pred, t, depth_latent).prev_sample
-        torch.cuda.empty_cache()  # clear vram cache for ensembling
+        torch.cuda.empty_cache()
         depth = self.decode_depth(depth_latent)
 
         # clip prediction

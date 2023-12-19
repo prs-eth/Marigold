@@ -76,7 +76,7 @@ def chw2hwc(chw):
 
 def resize_max_res(img: Image.Image, max_edge_resolution: int) -> Image.Image:
     """
-    Resize image to limit maximum edge length while keeping aspect ratio
+    Resize image to limit maximum edge length while keeping aspect ratio.
 
     Args:
         img (Image.Image): Image to be resized
