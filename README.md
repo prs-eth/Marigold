@@ -131,6 +131,8 @@ The default settings are optimized for the best result. However, the behavior of
   - `--ensemble_size`: Number of inference passes in the ensemble. Default: 10.
   - `--denoise_steps`: Number of denoising steps of each inference pass. Default: 10.
 
+- `--half_precision`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
+
 - By default, the inference script resizes input images to the *processing resolution*, and then resizes the prediction back to the original resolution. This gives the best quality, as Stable Diffusion, from which Marigold is derived, performs best at 768x768 resolution.  
   
   - `--processing_res`: the processing resolution; set 0 to process the input resolution directly. Default: 768.

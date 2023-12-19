@@ -1,6 +1,6 @@
 # Test align depth images
 # Author: Bingxin Ke
-# Last modified: 2023-12-15
+# Last modified: 2023-12-18
 
 import numpy as np
 import torch
@@ -34,7 +34,8 @@ def ensemble_depths(
         by aligning estimating the scale and shift
     """
     device = input_images.device
-    dtype = np.float32
+    dtype = input_images.dtype
+    np_dtype = np.float32
 
     original_input = input_images.clone()
     n_img = input_images.shape[0]
@@ -51,18 +52,17 @@ def ensemble_depths(
     _max = np.max(input_images.reshape((n_img, -1)).cpu().numpy(), axis=1)
     s_init = 1.0 / (_max - _min).reshape((-1, 1, 1))
     t_init = (-1 * s_init.flatten() * _min.flatten()).reshape((-1, 1, 1))
-    x = np.concatenate([s_init, t_init]).reshape(-1)
+    x = np.concatenate([s_init, t_init]).reshape(-1).astype(np_dtype)
 
     input_images = input_images.to(device)
 
     # objective function
     def closure(x):
-        x = x.astype(dtype)
         l = len(x)
         s = x[: int(l / 2)]
         t = x[int(l / 2) :]
-        s = torch.from_numpy(s).to(device)
-        t = torch.from_numpy(t).to(device)
+        s = torch.from_numpy(s).to(dtype=dtype).to(device)
+        t = torch.from_numpy(t).to(dtype=dtype).to(device)
 
         transformed_arrays = input_images * s.view((-1, 1, 1)) + t.view((-1, 1, 1))
         dists = inter_distances(transformed_arrays)
@@ -79,21 +79,20 @@ def ensemble_depths(
         far_err = torch.sqrt((1 - torch.max(pred)) ** 2)
 
         err = sqrt_dist + (near_err + far_err) * regularizer_strength
-        err = err.detach().cpu().numpy()
+        err = err.detach().cpu().numpy().astype(np_dtype)
         return err
 
     res = minimize(
         closure, x, method="BFGS", tol=tol, options={"maxiter": max_iter, "disp": False}
     )
     x = res.x
-    x = x.astype(dtype)
     l = len(x)
     s = x[: int(l / 2)]
     t = x[int(l / 2) :]
 
     # Prediction
-    s = torch.from_numpy(s).to(device)
-    t = torch.from_numpy(t).to(device)
+    s = torch.from_numpy(s).to(dtype=dtype).to(device)
+    t = torch.from_numpy(t).to(dtype=dtype).to(device)
     transformed_arrays = original_input * s.view(-1, 1, 1) + t.view(-1, 1, 1)
     if "mean" == reduction:
         aligned_images = torch.mean(transformed_arrays, dim=0)

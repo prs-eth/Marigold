@@ -1,7 +1,7 @@
 # Script for inference on (in-the-wild) images
 
 # Author: Bingxin Ke
-# Last modified: 2023-12-15
+# Last modified: 2023-12-18
 
 
 import argparse
@@ -60,6 +60,11 @@ if "__main__" == __name__:
         default=10,
         help="Number of predictions to be ensembled, more inference gives better results but runs slower.",
     )
+    parser.add_argument(
+        "--half_precision",
+        action="store_true",
+        help="Run with half-precision (16-bit float), might lead to suboptimal result.",
+    )
 
     # resolution setting
     parser.add_argument(
@@ -104,6 +109,9 @@ if "__main__" == __name__:
 
     denoise_steps = args.denoise_steps
     ensemble_size = args.ensemble_size
+    if ensemble_size > 15:
+        logging.warning(f"Running with large ensemble size will be slow.")
+    half_precision = args.half_precision
 
     processing_res = args.processing_res
     match_input_res = not args.output_processing_res
@@ -131,9 +139,9 @@ if "__main__" == __name__:
     os.makedirs(output_dir_color, exist_ok=True)
     os.makedirs(output_dir_tif, exist_ok=True)
     os.makedirs(output_dir_npy, exist_ok=True)
-    logging.info(f"output dir: {output_dir}")
+    logging.info(f"output dir = {output_dir}")
 
-    # Device
+    # -------------------- Device --------------------
     if apple_silicon:
         if torch.backends.mps.is_available() and torch.backends.mps.is_built():
             device = torch.device("mps:0")
@@ -146,7 +154,7 @@ if "__main__" == __name__:
         else:
             device = torch.device("cpu")
             logging.warning("CUDA is not available. Running on CPU will be slow.")
-    logging.info(f"device: {device}")
+    logging.info(f"device = {device}")
 
     # -------------------- Data --------------------
     rgb_filename_list = glob(os.path.join(input_rgb_dir, "*"))
@@ -162,7 +170,14 @@ if "__main__" == __name__:
         exit(1)
 
     # -------------------- Model --------------------
-    pipe = MarigoldPipeline.from_pretrained(checkpoint_path)
+    if half_precision:
+        dtype = torch.float16
+        logging.info(f"Running with half precision ({dtype}).")
+    else:
+        dtype = torch.float32
+
+    pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
+    
     try:
         import xformers
         pipe.enable_xformers_memory_efficient_attention()
@@ -214,5 +229,7 @@ if "__main__" == __name__:
                 output_dir_color, f"{pred_name_base}_colored.png"
             )
             if os.path.exists(colored_save_path):
-                logging.warning(f"Existing file: '{colored_save_path}' will be overwritten")
+                logging.warning(
+                    f"Existing file: '{colored_save_path}' will be overwritten"
+                )
             depth_colored.save(colored_save_path)
