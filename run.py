@@ -191,9 +191,10 @@ if "__main__" == __name__:
         dtype = torch.float32
 
     pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
-    
+
     try:
         import xformers
+
         pipe.enable_xformers_memory_efficient_attention()
     except:
         pass  # run without xformers

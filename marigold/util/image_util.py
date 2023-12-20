@@ -79,11 +79,13 @@ def resize_max_res(img: Image.Image, max_edge_resolution: int) -> Image.Image:
     Resize image to limit maximum edge length while keeping aspect ratio.
 
     Args:
-        img (Image.Image): Image to be resized
-        max_edge_resolution (int): Maximum edge length (px).
+        img (`Image.Image`):
+            Image to be resized.
+        max_edge_resolution (`int`):
+            Maximum edge length (pixel).
 
     Returns:
-        Image.Image: Resized image.
+        `Image.Image`: Resized image.
     """
     original_width, original_height = img.size
     downscale_factor = min(

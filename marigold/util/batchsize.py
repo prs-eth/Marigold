@@ -53,11 +53,13 @@ def find_batch_size(ensemble_size: int, input_res: int, dtype: torch.dtype) -> i
     Automatically search for suitable operating batch size.
 
     Args:
-        ensemble_size (int): Number of predictions to be ensembled
-        input_res (int): Operating resolution of the input image.
+        ensemble_size (`int`):
+            Number of predictions to be ensembled.
+        input_res (`int`):
+            Operating resolution of the input image.
 
     Returns:
-        int: Operating batch size
+        `int`: Operating batch size.
     """
     if not torch.cuda.is_available():
         return 1
