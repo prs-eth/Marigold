@@ -25,7 +25,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 ![teaser](doc/teaser_collage_transparant.png)
 
 ## 📢 News
-
+2023-12-22: Contributed to Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation). <br>
 2023-12-19: Updated [license](LICENSE.txt) to Apache License, Version 2.0.<br>
 2023-12-08: Added
 <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> - try it out with your images for free!<br>
@@ -35,17 +35,19 @@ paper and inference code (this repository).
 
 ## 🚀 Usage
 
-We offer several ways to interact with Marigold:
+**We offer several ways to interact with Marigold**:
 
 1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/toshas/marigold"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
 
-2. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)): `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py` 
+1. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)): `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py` 
 
-3. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
+1. Run with Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation) (requires `diffusers >= 0.25.0`).
 
-4. If you just want to see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
+1. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
 
-5. Finally, local development instructions are given below.
+1. If you just want to see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
+
+1. Finally, local development instructions are given below.
 
 ## 🛠️ Setup
 
@@ -56,7 +58,7 @@ This code was tested on:
 - Windows 11 22H2, Python 3.10.12, CUDA 12.3, GeForce RTX 3080 (Mamba)
 - MacOS 14.2, Python 3.10.12, M1 16G (pip)
 
-### 🪟 A Note for Windows users
+### 🪧 A Note for Windows users
 
 We recommend running the code in WSL2:
 
