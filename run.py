@@ -66,7 +66,7 @@ if "__main__" == __name__:
         "--denoise_steps",
         type=int,
         default=10,
-        help="Diffusion denoising steps, more stepts results in higher accuracy but slower inference speed.",
+        help="Diffusion denoising steps, more steps results in higher accuracy but slower inference speed.",
     )
     parser.add_argument(
         "--ensemble_size",
@@ -124,7 +124,7 @@ if "__main__" == __name__:
     denoise_steps = args.denoise_steps
     ensemble_size = args.ensemble_size
     if ensemble_size > 15:
-        logging.warning(f"Running with large ensemble size will be slow.")
+        logging.warning("Running with large ensemble size will be slow.")
     half_precision = args.half_precision
 
     processing_res = args.processing_res
@@ -193,7 +193,6 @@ if "__main__" == __name__:
     pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
 
     try:
-        import xformers
 
         pipe.enable_xformers_memory_efficient_attention()
     except:
@@ -205,7 +204,7 @@ if "__main__" == __name__:
     with torch.no_grad():
         os.makedirs(output_dir, exist_ok=True)
 
-        for rgb_path in tqdm(rgb_filename_list, desc=f"Estimating depth", leave=True):
+        for rgb_path in tqdm(rgb_filename_list, desc="Estimating depth", leave=True):
             # Read input image
             input_image = Image.open(rgb_path)
 
