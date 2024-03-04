@@ -193,9 +193,8 @@ if "__main__" == __name__:
     pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
 
     try:
-
         pipe.enable_xformers_memory_efficient_attention()
-    except:
+    except ImportError:
         pass  # run without xformers
 
     pipe = pipe.to(device)
