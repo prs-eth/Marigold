@@ -1,5 +1,7 @@
 # Marigold: Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation
 
+**CVPR 2024**
+
 This repository represents the official implementation of the paper titled "Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation".
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
@@ -25,6 +27,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 ![teaser](doc/teaser_collage_transparant.png)
 
 ## 📢 News
+2024-03-04: Accepted to CVPR 2024. <br>
 2023-12-22: Contributed to Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation). <br>
 2023-12-19: Updated [license](LICENSE.txt) to Apache License, Version 2.0.<br>
 2023-12-08: Added
@@ -188,13 +191,11 @@ Please refer to [this](CONTRIBUTING.md) instruction.
 Please cite our paper:
 
 ```bibtex
-@misc{ke2023repurposing,
-      title={Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation}, 
+@InProceedings{ke2023repurposing,
+      title={Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation},
       author={Bingxin Ke and Anton Obukhov and Shengyu Huang and Nando Metzger and Rodrigo Caye Daudt and Konrad Schindler},
-      year={2023},
-      eprint={2312.02145},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+      booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+      year={2024}
 }
 ```
 
