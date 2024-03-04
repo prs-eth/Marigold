@@ -92,6 +92,12 @@ if "__main__" == __name__:
         action="store_true",
         help="When input is resized, out put depth at resized operating resolution. Default: False.",
     )
+    parser.add_argument(
+        "--resample_method",
+        choices=["bilinear", "bicubic", "nearest"],
+        default="bilinear",
+        help="Resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`. Default: `bilinear`",
+    )
 
     # depth map colormap
     parser.add_argument(
@@ -129,6 +135,7 @@ if "__main__" == __name__:
 
     processing_res = args.processing_res
     match_input_res = not args.output_processing_res
+    resample_method = args.resample_method
 
     color_map = args.color_map
     seed = args.seed
@@ -217,6 +224,7 @@ if "__main__" == __name__:
                 batch_size=batch_size,
                 color_map=color_map,
                 show_progress_bar=True,
+                resample_method=resample_method
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np
