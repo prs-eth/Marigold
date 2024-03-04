@@ -25,6 +25,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 from tqdm.auto import tqdm
 from PIL import Image
+from PIL.Image import Resampling
 
 from diffusers import (
     DiffusionPipeline,
@@ -35,7 +36,12 @@ from diffusers import (
 from diffusers.utils import BaseOutput
 from transformers import CLIPTextModel, CLIPTokenizer
 
-from .util.image_util import chw2hwc, colorize_depth_maps, resize_max_res
+from .util.image_util import (
+    chw2hwc,
+    colorize_depth_maps,
+    resize_max_res,
+    get_pil_resample_method,
+)
 from .util.batchsize import find_batch_size
 from .util.ensemble import ensemble_depths
 
@@ -110,6 +116,7 @@ class MarigoldPipeline(DiffusionPipeline):
         ensemble_size: int = 10,
         processing_res: int = 768,
         match_input_res: bool = True,
+        resample_method: str = "bilinear",
         batch_size: int = 0,
         color_map: str = "Spectral",
         show_progress_bar: bool = True,
@@ -127,6 +134,8 @@ class MarigoldPipeline(DiffusionPipeline):
             match_input_res (`bool`, *optional*, defaults to `True`):
                 Resize depth prediction to match input resolution.
                 Only valid if `limit_input_res` is not None.
+            resample_method: (`str`, *optional*, defaults to `bilinear`):
+                Resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`, defaults to: `bilinear`.
             denoising_steps (`int`, *optional*, defaults to `10`):
                 Number of diffusion denoising steps (DDIM) during inference.
             ensemble_size (`int`, *optional*, defaults to `10`):
@@ -159,11 +168,15 @@ class MarigoldPipeline(DiffusionPipeline):
         assert denoising_steps >= 1
         assert ensemble_size >= 1
 
+        resample_method: Resampling = get_pil_resample_method(resample_method)
+
         # ----------------- Image Preprocess -----------------
         # Resize image
         if processing_res > 0:
             input_image = resize_max_res(
-                input_image, max_edge_resolution=processing_res
+                input_image,
+                max_edge_resolution=processing_res,
+                resample_method=resample_method,
             )
         # Convert the image to RGB, to 1.remove the alpha channel 2.convert B&W to 3-channel
         input_image = input_image.convert("RGB")
@@ -233,7 +246,7 @@ class MarigoldPipeline(DiffusionPipeline):
         # Resize back to original resolution
         if match_input_res:
             pred_img = Image.fromarray(depth_pred)
-            pred_img = pred_img.resize(input_size)
+            pred_img = pred_img.resize(input_size, resample=resample_method)
             depth_pred = np.asarray(pred_img)
 
         # Clip output range

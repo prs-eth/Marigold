@@ -22,6 +22,7 @@ import matplotlib
 import numpy as np
 import torch
 from PIL import Image
+from PIL.Image import Resampling
 
 
 def colorize_depth_maps(
@@ -74,7 +75,9 @@ def chw2hwc(chw):
     return hwc
 
 
-def resize_max_res(img: Image.Image, max_edge_resolution: int) -> Image.Image:
+def resize_max_res(
+    img: Image.Image, max_edge_resolution: int, resample_method=Resampling.BILINEAR
+) -> Image.Image:
     """
     Resize image to limit maximum edge length while keeping aspect ratio.
 
@@ -83,6 +86,8 @@ def resize_max_res(img: Image.Image, max_edge_resolution: int) -> Image.Image:
             Image to be resized.
         max_edge_resolution (`int`):
             Maximum edge length (pixel).
+        resample_method (`PIL.Image.Resampling`):
+            Resampling method used to resize images.
 
     Returns:
         `Image.Image`: Resized image.
@@ -95,5 +100,18 @@ def resize_max_res(img: Image.Image, max_edge_resolution: int) -> Image.Image:
     new_width = int(original_width * downscale_factor)
     new_height = int(original_height * downscale_factor)
 
-    resized_img = img.resize((new_width, new_height))
+    resized_img = img.resize((new_width, new_height), resample=resample_method)
     return resized_img
+
+
+def get_pil_resample_method(method_str: str) -> Resampling:
+    resample_method_dic = {
+        "bilinear": Resampling.BILINEAR,
+        "bicubic": Resampling.BICUBIC,
+        "nearest": Resampling.NEAREST,
+    }
+    resample_method = resample_method_dic.get(method_str, None)
+    if resample_method is None:
+        raise ValueError(f"Unknown resampling method: {resample_method}")
+    else:
+        return resample_method

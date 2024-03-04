@@ -140,6 +140,7 @@ The default settings are optimized for the best result. However, the behavior of
   
   - `--processing_res`: the processing resolution; set 0 to process the input resolution directly. Default: 768.
   - `--output_processing_res`: produce output at the processing resolution instead of upsampling it to the input resolution. Default: False.
+  - `--resample_method`: resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`. Default: `bilinear`.
 
 - `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (using current time as random seed).
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
