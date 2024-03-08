@@ -1,0 +1,4 @@
+name: eth3d
+disp_name: eth3d_full
+dir: eth3d/eth3d.tar
+filenames: data_split/eth3d/eth3d_filename_list.txt
