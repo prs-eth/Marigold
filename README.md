@@ -54,7 +54,7 @@ paper and inference code (this repository).
 
 ## 🛠️ Setup
 
-This code was tested on:
+The inference code was tested on:
 
 - Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip, Mamba)
 - CentOS Linux 7, Python 3.10.4, CUDA 11.7, GeForce RTX 4090 (pip)
@@ -147,7 +147,7 @@ The default settings are optimized for the best result. However, the behavior of
 
 - `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (using current time as random seed).
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
-- `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral.
+- `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral. Set to `None` to skip colored depth map generation.
 - `--apple_silicon`: Use Apple Silicon MPS acceleration.
 
 ### ⬇ Checkpoint cache
