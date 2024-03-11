@@ -60,7 +60,7 @@ class MarigoldDepthOutput(BaseOutput):
     """
 
     depth_np: np.ndarray
-    depth_colored: Image.Image
+    depth_colored: Union[None, Image.Image]
     uncertainty: Union[None, np.ndarray]
 
 
@@ -108,6 +108,9 @@ class MarigoldPipeline(DiffusionPipeline):
 
         self.empty_text_embed = None
 
+        if not hasattr(self, "dtype"):
+            self.dtype = self.unet.dtype
+
     @torch.no_grad()
     def __call__(
         self,
@@ -145,14 +148,14 @@ class MarigoldPipeline(DiffusionPipeline):
                 If set to 0, the script will automatically decide the proper batch size.
             show_progress_bar (`bool`, *optional*, defaults to `True`):
                 Display a progress bar of diffusion denoising.
-            color_map (`str`, *optional*, defaults to `"Spectral"`):
+            color_map (`str`, *optional*, defaults to `"Spectral"`, pass `None` to skip colorized depth map generation):
                 Colormap used to colorize the depth map.
             ensemble_kwargs (`dict`, *optional*, defaults to `None`):
                 Arguments for detailed ensembling settings.
         Returns:
             `MarigoldDepthOutput`: Output class for Marigold monocular depth prediction pipeline, including:
             - **depth_np** (`np.ndarray`) Predicted depth map, with depth values in the range of [0, 1]
-            - **depth_colored** (`PIL.Image.Image`) Colorized depth map, with the shape of [3, H, W] and values in [0, 1]
+            - **depth_colored** (`PIL.Image.Image`) Colorized depth map, with the shape of [3, H, W] and values in [0, 1], None if `color_map` is `None`
             - **uncertainty** (`None` or `np.ndarray`) Uncalibrated uncertainty(MAD, median absolute deviation)
                     coming from ensembling. None if `ensemble_size = 1`
         """
@@ -253,12 +256,16 @@ class MarigoldPipeline(DiffusionPipeline):
         depth_pred = depth_pred.clip(0, 1)
 
         # Colorize
-        depth_colored = colorize_depth_maps(
-            depth_pred, 0, 1, cmap=color_map
-        ).squeeze()  # [3, H, W], value in (0, 1)
-        depth_colored = (depth_colored * 255).astype(np.uint8)
-        depth_colored_hwc = chw2hwc(depth_colored)
-        depth_colored_img = Image.fromarray(depth_colored_hwc)
+        if color_map is not None:
+            depth_colored = colorize_depth_maps(
+                depth_pred, 0, 1, cmap=color_map
+            ).squeeze()  # [3, H, W], value in (0, 1)
+            depth_colored = (depth_colored * 255).astype(np.uint8)
+            depth_colored_hwc = chw2hwc(depth_colored)
+            depth_colored_img = Image.fromarray(depth_colored_hwc)
+        else:
+            depth_colored_img = None
+
         return MarigoldDepthOutput(
             depth_np=depth_pred,
             depth_colored=depth_colored_img,
