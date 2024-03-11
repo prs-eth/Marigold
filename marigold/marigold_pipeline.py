@@ -108,6 +108,9 @@ class MarigoldPipeline(DiffusionPipeline):
 
         self.empty_text_embed = None
 
+        if not hasattr(self, "dtype"):
+            self.dtype = self.unet.dtype
+
     @torch.no_grad()
     def __call__(
         self,
