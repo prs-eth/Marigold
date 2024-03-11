@@ -1,4 +1,4 @@
-# Last modified: 2024-02-26
+# Last modified: 2024-03-11
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,6 @@
 import argparse
 import logging
 import os
-import sys
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -32,10 +30,9 @@ from PIL import Image
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-sys.path.append(str(Path(__file__).parents[2]))
-from marigold import MarigoldPipeline  # noqa: E402
-from marigold.util.seed_all import seed_all  # noqa: E402
-from src.dataset import (  # noqa: E402
+from marigold import MarigoldPipeline
+from marigold.util.seed_all import seed_all
+from src.dataset import (
     BaseDepthDataset,
     DatasetMode,
     get_dataset,
@@ -132,9 +129,9 @@ if "__main__" == __name__:
     resample_method = args.resample_method
 
     seed = args.seed
-    
+
     print(f"arguments: {args}")
-    
+
     # -------------------- Preparation --------------------
     # Random seed
     if seed is None:
@@ -218,7 +215,7 @@ if "__main__" == __name__:
                 batch_size=0,
                 color_map="Spectral",
                 show_progress_bar=False,
-                resample_method=resample_method
+                resample_method=resample_method,
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np

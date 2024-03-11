@@ -1,4 +1,4 @@
-# Last modified: 2024-02-08
+# Last modified: 2024-03-11
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,6 @@
 import argparse
 import logging
 import os
-import sys
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -31,21 +29,19 @@ from tabulate import tabulate
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
-sys.path.append(str(Path(__file__).parents[2]))
-print(sys.path)
-from src.dataset import (  # noqa: E402
+from src.dataset import (
     BaseDepthDataset,
     DatasetMode,
     get_dataset,
     get_pred_name,
 )
-from src.util import metric  # noqa: E402
-from src.util.alignment import (  # noqa: E402
+from src.util import metric
+from src.util.alignment import (
     align_depth_least_square,
     depth2disparity,
     disparity2depth,
 )
-from src.util.metric import MetricTracker  # noqa: E402
+from src.util.metric import MetricTracker
 
 eval_metrics = [
     "abs_relative_difference",

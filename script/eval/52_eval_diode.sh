@@ -3,7 +3,7 @@ set -e
 set -x
 
 
-python script/eval/eval.py \
+python eval.py \
     --base_data_dir $BASE_DATA_DIR \
     --dataset_config config/dataset/data_diode_all.yaml \
     --alignment least_square \

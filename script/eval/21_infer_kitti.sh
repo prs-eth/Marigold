@@ -3,7 +3,7 @@ set -e
 set -x
 
 
-python script/eval/infer.py \
+python infer.py \
     --seed 1234 \
     --base_data_dir $BASE_DATA_DIR \
     --denoise_steps 50 \
