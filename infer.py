@@ -213,13 +213,12 @@ if "__main__" == __name__:
                 processing_res=processing_res,
                 match_input_res=match_input_res,
                 batch_size=0,
-                color_map="Spectral",
+                color_map=None,
                 show_progress_bar=False,
                 resample_method=resample_method,
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np
-            depth_colored: Image.Image = pipe_out.depth_colored
 
             # Save predictions
             rgb_filename = batch["rgb_relative_path"][0]
