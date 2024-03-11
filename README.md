@@ -54,7 +54,7 @@ paper and inference code (this repository).
 
 ## 🛠️ Setup
 
-This code was tested on:
+The inference code was tested on:
 
 - Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip, Mamba)
 - CentOS Linux 7, Python 3.10.4, CUDA 11.7, GeForce RTX 4090 (pip)
