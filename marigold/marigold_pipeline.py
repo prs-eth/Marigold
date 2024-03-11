@@ -136,7 +136,7 @@ class MarigoldPipeline(DiffusionPipeline):
                 If set to 0: will not resize at all.
             match_input_res (`bool`, *optional*, defaults to `True`):
                 Resize depth prediction to match input resolution.
-                Only valid if `limit_input_res` is not None.
+                Only valid if `processing_res` > 0.
             resample_method: (`str`, *optional*, defaults to `bilinear`):
                 Resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`, defaults to: `bilinear`.
             denoising_steps (`int`, *optional*, defaults to `10`):
