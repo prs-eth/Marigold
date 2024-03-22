@@ -1,5 +1,5 @@
 accelerate>=0.22.0
-diffusers>=0.20.1
+diffusers>=0.25.0
 matplotlib
 scipy
 torch==2.0.1

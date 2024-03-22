@@ -1,13 +1,13 @@
 
 # ignore these folders
-checkpoint/
-data/
-input/
-output/
-temp/
-wandb/
-venv/
-cache/
+/checkpoint
+/data
+/input
+/output
+/temp
+/wandb
+/venv
+/cache
 
 **/.ipynb_checkpoints/
 .vscode/
