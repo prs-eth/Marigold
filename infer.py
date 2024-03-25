@@ -1,4 +1,4 @@
-# Last modified: 2024-03-11
+# Last modified: 2024-03-25
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ if "__main__" == __name__:
     parser.add_argument(
         "--checkpoint",
         type=str,
-        default="Bingxin/Marigold",
+        default="prs-eth/marigold-v1-0",
         help="Checkpoint path or hub name.",
     )
 
