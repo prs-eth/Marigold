@@ -193,6 +193,8 @@ At inference, specify the checkpoint path:
 ```bash
 python run.py \
     --checkpoint checkpoint/marigold-v1-0 \
+    --denoise_steps 50 \
+    --ensemble_size 10 \
     --input_rgb_dir input/in-the-wild_example\
     --output_dir output/in-the-wild_example
 ```
