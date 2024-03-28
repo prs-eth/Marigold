@@ -197,6 +197,33 @@ python run.py \
     --output_dir output/in-the-wild_example
 ```
 
+## 🦿 Evaluation on test datasets
+
+Install additional dependencies:
+
+```bash
+pip install -r requirements+.txt
+```
+
+Set data directory variable (also needed in evaluation scripts) and download [evaluation datasets](https://share.phys.ethz.ch/~pf/bingkedata/marigold/evaluation_dataset) into corresponding subfolders:
+
+```bash
+export BASE_DATA_DIR=<YOUR_DATA_DIR>  # Set target data directory
+
+wget -r -np -nH --cut-dirs=4 -R "index.html*" -P ${BASE_DATA_DIR} https://share.phys.ethz.ch/~pf/bingkedata/marigold/evaluation_dataset/
+```
+
+Run inference and evaluation scripts, for example:
+
+```bash
+cd eval
+# Run inference
+bash script/eval/11_infer_nyu.sh
+
+# Evaluate predictions
+bash script/eval/12_eval_nyu.sh
+```
+
 ## ✏️ Contributing
 
 Please refer to [this](CONTRIBUTING.md) instruction.

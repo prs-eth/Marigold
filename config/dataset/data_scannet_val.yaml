@@ -1,0 +1,4 @@
+name: scannet
+disp_name: scannet_val_800_1
+dir: scannet/scannet_val_sampled_800_1.tar
+filenames: data_split/scannet/scannet_val_sampled_list_800_1.txt

@@ -1,0 +1,4 @@
+name: diode
+disp_name: diode_val_all
+dir: diode/diode_val.tar
+filenames: data_split/diode/diode_val_all_filename_list.txt 
