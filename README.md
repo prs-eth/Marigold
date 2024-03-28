@@ -216,7 +216,6 @@ wget -r -np -nH --cut-dirs=4 -R "index.html*" -P ${BASE_DATA_DIR} https://share.
 Run inference and evaluation scripts, for example:
 
 ```bash
-cd eval
 # Run inference
 bash script/eval/11_infer_nyu.sh
 
