@@ -63,8 +63,8 @@ if "__main__" == __name__:
     parser.add_argument(
         "--denoise_steps",
         type=int,
-        default=1,
-        help="Diffusion denoising steps, more steps results in higher accuracy but slower inference speed.",
+        default=4,
+        help="Diffusion denoising steps, more steps results in higher accuracy but slower inference speed. For the original (DDIM) version, it's recommended to use 10-50 steps, while for LCM 1-4 steps.",
     )
     parser.add_argument(
         "--ensemble_size",
@@ -150,7 +150,7 @@ if "__main__" == __name__:
         f"processing resolution = {processing_res}, seed = {seed}; "
         f"color_map = {color_map}."
     )
-    
+
     # Random seed
     if seed is None:
         import time

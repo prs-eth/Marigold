@@ -129,7 +129,7 @@ The [LCM checkpoint](https://huggingface.co/prs-eth/marigold-lcm-v1-0) is distil
 
 ```bash
  python run.py \
-     --denoise_steps 1 \
+     --denoise_steps 4 \
      --ensemble_size 5 \
      --input_rgb_dir input/in-the-wild_example \
      --output_dir output/in-the-wild_example_lcm
@@ -156,7 +156,7 @@ The default settings are optimized for the best result. However, the behavior of
 
 - Trade-offs between the **accuracy** and **speed** (for both options, larger values result in better accuracy at the cost of slower inference.)
   - `--ensemble_size`: Number of inference passes in the ensemble. For LCM `ensemble_size` is more important than `denoise_steps`. Default: ~~10~~ 5 (for LCM).
-  - `--denoise_steps`: Number of denoising steps of each inference pass. Default: ~~10~~ 1 (for LCM).
+  - `--denoise_steps`: Number of denoising steps of each inference pass. For the original (DDIM) version, it's recommended to use 10-50 steps, while for LCM 1-4 steps. Default: ~~10~~ 4 (for LCM).
 
 - `--half_precision`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
 
