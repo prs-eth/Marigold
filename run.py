@@ -19,19 +19,17 @@
 
 
 import argparse
+import logging
 import os
 from glob import glob
-import logging
 
 import numpy as np
 import torch
 from PIL import Image
 from tqdm.auto import tqdm
 
-
 from marigold import MarigoldPipeline
 from marigold.util.seed_all import seed_all
-
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
 
@@ -46,7 +44,7 @@ if "__main__" == __name__:
     parser.add_argument(
         "--checkpoint",
         type=str,
-        default="Bingxin/Marigold",
+        default="prs-eth/marigold-lcm-v1-0",
         help="Checkpoint path or hub name.",
     )
 
@@ -65,13 +63,13 @@ if "__main__" == __name__:
     parser.add_argument(
         "--denoise_steps",
         type=int,
-        default=10,
+        default=1,
         help="Diffusion denoising steps, more steps results in higher accuracy but slower inference speed.",
     )
     parser.add_argument(
         "--ensemble_size",
         type=int,
-        default=10,
+        default=5,
         help="Number of predictions to be ensembled, more inference gives better results but runs slower.",
     )
     parser.add_argument(
@@ -224,7 +222,7 @@ if "__main__" == __name__:
                 batch_size=batch_size,
                 color_map=color_map,
                 show_progress_bar=True,
-                resample_method=resample_method
+                resample_method=resample_method,
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np

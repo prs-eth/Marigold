@@ -18,32 +18,33 @@
 # --------------------------------------------------------------------------
 
 
+import logging
 from typing import Dict, Union
 
-import torch
-from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from tqdm.auto import tqdm
-from PIL import Image
-from PIL.Image import Resampling
-
+import torch
 from diffusers import (
-    DiffusionPipeline,
-    DDIMScheduler,
-    UNet2DConditionModel,
     AutoencoderKL,
+    DDIMScheduler,
+    DiffusionPipeline,
+    LCMScheduler,
+    UNet2DConditionModel,
 )
 from diffusers.utils import BaseOutput
+from PIL import Image
+from PIL.Image import Resampling
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
+from .util.batchsize import find_batch_size
+from .util.ensemble import ensemble_depths
 from .util.image_util import (
     chw2hwc,
     colorize_depth_maps,
-    resize_max_res,
     get_pil_resample_method,
+    resize_max_res,
 )
-from .util.batchsize import find_batch_size
-from .util.ensemble import ensemble_depths
 
 
 class MarigoldDepthOutput(BaseOutput):
@@ -92,7 +93,7 @@ class MarigoldPipeline(DiffusionPipeline):
         self,
         unet: UNet2DConditionModel,
         vae: AutoencoderKL,
-        scheduler: DDIMScheduler,
+        scheduler: Union[DDIMScheduler, LCMScheduler],
         text_encoder: CLIPTextModel,
         tokenizer: CLIPTokenizer,
     ):
@@ -165,8 +166,10 @@ class MarigoldPipeline(DiffusionPipeline):
                 processing_res is not None
             ), "Value error: `resize_output_back` is only valid with "
         assert processing_res >= 0
-        assert denoising_steps >= 1
         assert ensemble_size >= 1
+
+        # Check if denoising step is reasonable
+        self._check_inference_step(denoising_steps)
 
         resample_method: Resampling = get_pil_resample_method(resample_method)
 
@@ -268,6 +271,25 @@ class MarigoldPipeline(DiffusionPipeline):
             depth_colored=depth_colored_img,
             uncertainty=pred_uncert,
         )
+
+    def _check_inference_step(self, n_step: int):
+        """
+        Check if denoising step is reasonable
+        Args:
+            n_step (`int`): denoising steps
+        """
+        assert n_step >= 1
+        
+        if isinstance(self.scheduler, DDIMScheduler):
+            if n_step < 10:
+                logging.warning(
+                    f"Too few denoising step: {n_step}. Recommended to use the LCM checkpoint for few-step inference."
+                )
+        elif isinstance(self.scheduler, LCMScheduler):
+            if not 1 <= n_step <= 4:
+                logging.warning(
+                    f"Non-optimal setting of denoising steps: {n_step}. Recommended setting is 1-4 steps."
+                )
 
     def __encode_empty_text(self):
         """
