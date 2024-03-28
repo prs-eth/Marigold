@@ -1,4 +1,4 @@
-# Last modified: 2024-03-25
+# Last modified: 2024-03-28
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,6 +133,14 @@ if "__main__" == __name__:
     print(f"arguments: {args}")
 
     # -------------------- Preparation --------------------
+    # Print out config
+    logging.info(
+        f"Inference settings: checkpoint = `{checkpoint_path}`, "
+        f"with denoise_steps = {denoise_steps}, ensemble_size = {ensemble_size}, "
+        f"processing resolution = {processing_res}, seed = {seed}; "
+        f"dataset config = `{dataset_config}`."
+    )
+    
     # Random seed
     if seed is None:
         import time

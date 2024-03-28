@@ -143,13 +143,20 @@ if "__main__" == __name__:
         batch_size = 1  # set default batchsize
 
     # -------------------- Preparation --------------------
+    # Print out config
+    logging.info(
+        f"Inference settings: checkpoint = `{checkpoint_path}`, "
+        f"with denoise_steps = {denoise_steps}, ensemble_size = {ensemble_size}, "
+        f"processing resolution = {processing_res}, seed = {seed}; "
+        f"color_map = {color_map}."
+    )
+    
     # Random seed
     if seed is None:
         import time
 
         seed = int(time.time())
     seed_all(seed)
-
     # Output directories
     output_dir_color = os.path.join(output_dir, "depth_colored")
     output_dir_tif = os.path.join(output_dir, "depth_bw")
