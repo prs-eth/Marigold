@@ -290,6 +290,8 @@ class MarigoldPipeline(DiffusionPipeline):
                 logging.warning(
                     f"Non-optimal setting of denoising steps: {n_step}. Recommended setting is 1-4 steps."
                 )
+        else:
+            raise RuntimeError(f"Unsupported scheduler type: {type(self.scheduler)}")
 
     def __encode_empty_text(self):
         """
