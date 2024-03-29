@@ -1,4 +1,4 @@
-# Last modified: 2024-03-28
+# Last modified: 2024-03-29
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,6 +86,7 @@ if "__main__" == __name__:
     )
     parser.add_argument(
         "--half_precision",
+        "--fp16",
         action="store_true",
         help="Run with half-precision (16-bit float), might lead to suboptimal result.",
     )
@@ -140,7 +141,7 @@ if "__main__" == __name__:
         f"processing resolution = {processing_res}, seed = {seed}; "
         f"dataset config = `{dataset_config}`."
     )
-    
+
     # Random seed
     if seed is None:
         import time
@@ -190,11 +191,17 @@ if "__main__" == __name__:
     # -------------------- Model --------------------
     if half_precision:
         dtype = torch.float16
-        logging.info(f"Running with half precision ({dtype}).")
+        variant = "fp16"
+        logging.warning(
+            f"Running with half precision ({dtype}), might lead to suboptimal result."
+        )
     else:
         dtype = torch.float32
+        variant = None
 
-    pipe = MarigoldPipeline.from_pretrained(checkpoint_path, torch_dtype=dtype)
+    pipe = MarigoldPipeline.from_pretrained(
+        checkpoint_path, variant=variant, torch_dtype=dtype
+    )
 
     try:
         pipe.enable_xformers_memory_efficient_attention()
