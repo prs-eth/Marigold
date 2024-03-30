@@ -158,14 +158,13 @@ The default settings are optimized for the best result. However, the behavior of
   - `--ensemble_size`: Number of inference passes in the ensemble. For LCM `ensemble_size` is more important than `denoise_steps`. Default: ~~10~~ 5 (for LCM).
   - `--denoise_steps`: Number of denoising steps of each inference pass. For the original (DDIM) version, it's recommended to use 10-50 steps, while for LCM 1-4 steps. Default: ~~10~~ 4 (for LCM).
 
-- `--half_precision`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
-
 - By default, the inference script resizes input images to the *processing resolution*, and then resizes the prediction back to the original resolution. This gives the best quality, as Stable Diffusion, from which Marigold is derived, performs best at 768x768 resolution.  
   
   - `--processing_res`: the processing resolution; set 0 to process the input resolution directly. Default: 768.
   - `--output_processing_res`: produce output at the processing resolution instead of upsampling it to the input resolution. Default: False.
   - `--resample_method`: resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`. Default: `bilinear`.
 
+- `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
 - `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (using current time as random seed).
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
 - `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral. Set to `None` to skip colored depth map generation.
@@ -173,7 +172,7 @@ The default settings are optimized for the best result. However, the behavior of
 
 ### ⬇ Checkpoint cache
 
-By default, the [checkpoint](https://huggingface.co/Bingxin/Marigold) is stored in the Hugging Face cache.
+By default, the [checkpoint](https://huggingface.co/prs-eth/marigold-v1-0) is stored in the Hugging Face cache.
 The `HF_HOME` environment variable defines its location and can be overridden, e.g.:
 
 ```bash
