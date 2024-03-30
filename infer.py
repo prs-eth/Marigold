@@ -1,4 +1,4 @@
-# Last modified: 2024-03-29
+# Last modified: 2024-03-30
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from marigold import MarigoldPipeline
-from marigold.util.seed_all import seed_all
+from src.util.seed_all import seed_all
 from src.dataset import (
     BaseDepthDataset,
     DatasetMode,
