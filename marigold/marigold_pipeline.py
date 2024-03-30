@@ -119,6 +119,7 @@ class MarigoldPipeline(DiffusionPipeline):
         match_input_res: bool = True,
         resample_method: str = "bilinear",
         batch_size: int = 0,
+        seed: Union[int, None] = None,
         color_map: str = "Spectral",
         show_progress_bar: bool = True,
         ensemble_kwargs: Dict = None,
@@ -144,6 +145,8 @@ class MarigoldPipeline(DiffusionPipeline):
             batch_size (`int`, *optional*, defaults to `0`):
                 Inference batch size, no bigger than `num_ensemble`.
                 If set to 0, the script will automatically decide the proper batch size.
+            seed (`int`, *optional*, defaults to `None`)
+                Reproducibility seed.
             show_progress_bar (`bool`, *optional*, defaults to `True`):
                 Display a progress bar of diffusion denoising.
             color_map (`str`, *optional*, defaults to `"Spectral"`, pass `None` to skip colorized depth map generation):
@@ -223,9 +226,10 @@ class MarigoldPipeline(DiffusionPipeline):
                 rgb_in=batched_img,
                 num_inference_steps=denoising_steps,
                 show_pbar=show_progress_bar,
+                seed=seed,
             )
-            depth_pred_ls.append(depth_pred_raw.detach().clone())
-        depth_preds = torch.concat(depth_pred_ls, axis=0).squeeze()
+            depth_pred_ls.append(depth_pred_raw.detach())
+        depth_preds = torch.concat(depth_pred_ls, dim=0).squeeze()
         torch.cuda.empty_cache()  # clear vram cache for ensembling
 
         # ----------------- Test-time ensembling -----------------
@@ -272,14 +276,14 @@ class MarigoldPipeline(DiffusionPipeline):
             uncertainty=pred_uncert,
         )
 
-    def _check_inference_step(self, n_step: int):
+    def _check_inference_step(self, n_step: int) -> None:
         """
         Check if denoising step is reasonable
         Args:
             n_step (`int`): denoising steps
         """
         assert n_step >= 1
-        
+
         if isinstance(self.scheduler, DDIMScheduler):
             if n_step < 10:
                 logging.warning(
@@ -310,7 +314,11 @@ class MarigoldPipeline(DiffusionPipeline):
 
     @torch.no_grad()
     def single_infer(
-        self, rgb_in: torch.Tensor, num_inference_steps: int, show_pbar: bool
+        self,
+        rgb_in: torch.Tensor,
+        num_inference_steps: int,
+        seed: Union[int, None],
+        show_pbar: bool,
     ) -> torch.Tensor:
         """
         Perform an individual depth prediction without ensembling.
@@ -335,8 +343,16 @@ class MarigoldPipeline(DiffusionPipeline):
         rgb_latent = self.encode_rgb(rgb_in)
 
         # Initial depth map (noise)
+        if seed is None:
+            rand_num_generator = None
+        else:
+            rand_num_generator = torch.Generator(device=device)
+            rand_num_generator.manual_seed(seed)
         depth_latent = torch.randn(
-            rgb_latent.shape, device=device, dtype=self.dtype
+            rgb_latent.shape,
+            device=device,
+            dtype=self.dtype,
+            generator=rand_num_generator,
         )  # [B, 4, h, w]
 
         # Batched empty text embedding
@@ -368,8 +384,10 @@ class MarigoldPipeline(DiffusionPipeline):
             ).sample  # [B, 4, h, w]
 
             # compute the previous noisy sample x_t -> x_t-1
-            depth_latent = self.scheduler.step(noise_pred, t, depth_latent).prev_sample
-        torch.cuda.empty_cache()
+            depth_latent = self.scheduler.step(
+                noise_pred, t, depth_latent, generator=rand_num_generator
+            ).prev_sample
+
         depth = self.decode_depth(depth_latent)
 
         # clip prediction

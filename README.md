@@ -165,7 +165,7 @@ The default settings are optimized for the best result. However, the behavior of
   - `--resample_method`: resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`. Default: `bilinear`.
 
 - `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
-- `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (using current time as random seed).
+- `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (unseeded). Note: forcing `--batch_size 1` helps to increase reproducibility. To ensure full reproducibility, [deterministic mode](https://pytorch.org/docs/stable/notes/randomness.html#avoiding-nondeterministic-algorithms) needs to be used.
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
 - `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral. Set to `None` to skip colored depth map generation.
 - `--apple_silicon`: Use Apple Silicon MPS acceleration.
@@ -223,6 +223,8 @@ bash script/eval/11_infer_nyu.sh
 # Evaluate predictions
 bash script/eval/12_eval_nyu.sh
 ```
+
+Note: although the seed has been set, the results might still be slightly different on different hardware.
 
 ## ✏️ Contributing
 
