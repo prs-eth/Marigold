@@ -29,7 +29,6 @@ from PIL import Image
 from tqdm.auto import tqdm
 
 from marigold import MarigoldPipeline
-from marigold.util.seed_all import seed_all
 
 EXTENSION_LIST = [".jpg", ".jpeg", ".png"]
 
@@ -107,7 +106,8 @@ if "__main__" == __name__:
     )
 
     # other settings
-    parser.add_argument("--seed", type=int, default=None, help="Random seed.")
+    parser.add_argument("--seed", type=int, default=None, help="Reproducibility seed. Set to `None` for unseeded inference.")
+
     parser.add_argument(
         "--batch_size",
         type=int,
@@ -152,12 +152,6 @@ if "__main__" == __name__:
         f"color_map = {color_map}."
     )
 
-    # Random seed
-    if seed is None:
-        import time
-
-        seed = int(time.time())
-    seed_all(seed)
     # Output directories
     output_dir_color = os.path.join(output_dir, "depth_colored")
     output_dir_tif = os.path.join(output_dir, "depth_bw")
@@ -235,6 +229,7 @@ if "__main__" == __name__:
                 color_map=color_map,
                 show_progress_bar=True,
                 resample_method=resample_method,
+                seed=seed,
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np
