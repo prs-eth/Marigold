@@ -34,7 +34,7 @@ def colorize_depth_maps(
     assert len(depth_map.shape) >= 2, "Invalid dimension"
 
     if isinstance(depth_map, torch.Tensor):
-        depth = depth_map.detach().clone().squeeze().numpy()
+        depth = depth_map.detach().squeeze().numpy()
     elif isinstance(depth_map, np.ndarray):
         depth = depth_map.copy().squeeze()
     # reshape to [ (B,) H, W ]
