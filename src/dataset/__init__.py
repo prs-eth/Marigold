@@ -1,5 +1,5 @@
 # Author: Bingxin Ke
-# Last modified: 2024-02-08
+# Last modified: 2024-03-30
 
 import os
 
@@ -11,7 +11,7 @@ from .nyu_dataset import NYUDataset
 from .scannet_dataset import ScanNetDataset
 
 
-dataset_name_class_dic = {
+dataset_name_class_dict = {
     "nyu_v2": NYUDataset,
     "kitti": KITTIDataset,
     "eth3d": ETH3DDataset,
@@ -21,8 +21,8 @@ dataset_name_class_dic = {
 
 
 def get_dataset(cfg_data_split, base_data_dir: str, mode: DatasetMode, **kwargs) -> BaseDepthDataset:
-    if cfg_data_split.name in dataset_name_class_dic.keys():
-        dataset_class = dataset_name_class_dic[cfg_data_split.name]
+    if cfg_data_split.name in dataset_name_class_dict.keys():
+        dataset_class = dataset_name_class_dict[cfg_data_split.name]
         dataset = dataset_class(
             mode=mode,
             filename_ls_path=cfg_data_split.filenames,

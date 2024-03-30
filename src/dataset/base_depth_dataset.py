@@ -1,5 +1,5 @@
 # Author: Bingxin Ke
-# Last modified: 2024-02-08
+# Last modified: 2024-03-30
 
 import io
 import os
@@ -217,13 +217,13 @@ class BaseDepthDataset(Dataset):
 
         return rasters
 
-    def _augment_data(self, rasters_dic):
+    def _augment_data(self, rasters_dict):
         # lr flipping
         lr_flip_p = self.augm_args.lr_flip_p
         if random.random() < lr_flip_p:
-            rasters_dic = {k: v.flip(-1) for k, v in rasters_dic.items()}
+            rasters_dict = {k: v.flip(-1) for k, v in rasters_dict.items()}
 
-        return rasters_dic
+        return rasters_dict
 
     def __del__(self):
         if self.tar_obj is not None:
