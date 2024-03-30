@@ -106,7 +106,12 @@ if "__main__" == __name__:
     )
 
     # other settings
-    parser.add_argument("--seed", type=int, default=None, help="Reproducibility seed. Set to `None` for unseeded inference.")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Reproducibility seed. Set to `None` for unseeded inference.",
+    )
 
     parser.add_argument(
         "--batch_size",
@@ -194,7 +199,9 @@ if "__main__" == __name__:
     if half_precision:
         dtype = torch.float16
         variant = "fp16"
-        logging.info(f"Running with half precision ({dtype}), might lead to suboptimal result.")
+        logging.info(
+            f"Running with half precision ({dtype}), might lead to suboptimal result."
+        )
     else:
         dtype = torch.float32
         variant = None
