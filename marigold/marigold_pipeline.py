@@ -160,8 +160,6 @@ class MarigoldPipeline(DiffusionPipeline):
             - **uncertainty** (`None` or `np.ndarray`) Uncalibrated uncertainty(MAD, median absolute deviation)
                     coming from ensembling. None if `ensemble_size = 1`
         """
-
-        device = self.device
         input_size = input_image.size
 
         if not match_input_res:
@@ -192,7 +190,6 @@ class MarigoldPipeline(DiffusionPipeline):
         rgb = np.transpose(image, (2, 0, 1))  # [H, W, rgb] -> [rgb, H, W]
         rgb_norm = rgb / 255.0 * 2.0 - 1.0  #  [0, 255] -> [-1, 1]
         rgb_norm = torch.from_numpy(rgb_norm).to(self.dtype)
-        rgb_norm = rgb_norm.to(device)
         assert rgb_norm.min() >= -1.0 and rgb_norm.max() <= 1.0
 
         # ----------------- Predicting depth -----------------
@@ -297,7 +294,7 @@ class MarigoldPipeline(DiffusionPipeline):
         else:
             raise RuntimeError(f"Unsupported scheduler type: {type(self.scheduler)}")
 
-    def __encode_empty_text(self):
+    def encode_empty_text(self):
         """
         Encode text embedding for empty prompt
         """
@@ -333,7 +330,8 @@ class MarigoldPipeline(DiffusionPipeline):
         Returns:
             `torch.Tensor`: Predicted depth map.
         """
-        device = rgb_in.device
+        device = self.device
+        rgb_in = rgb_in.to(device)
 
         # Set timesteps
         self.scheduler.set_timesteps(num_inference_steps, device=device)
@@ -357,7 +355,7 @@ class MarigoldPipeline(DiffusionPipeline):
 
         # Batched empty text embedding
         if self.empty_text_embed is None:
-            self.__encode_empty_text()
+            self.encode_empty_text()
         batch_empty_text_embed = self.empty_text_embed.repeat(
             (rgb_latent.shape[0], 1, 1)
         )  # [B, 2, 1024]
