@@ -22,7 +22,8 @@ import matplotlib
 import numpy as np
 import torch
 from PIL import Image
-from PIL.Image import Resampling
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms.functional import resize
 
 
 def colorize_depth_maps(
@@ -76,14 +77,16 @@ def chw2hwc(chw):
 
 
 def resize_max_res(
-    img: Image.Image, max_edge_resolution: int, resample_method=Resampling.BILINEAR
+    img: torch.Tensor,
+    max_edge_resolution: int,
+    resample_method: InterpolationMode = InterpolationMode.BILINEAR,
 ) -> Image.Image:
     """
     Resize image to limit maximum edge length while keeping aspect ratio.
 
     Args:
-        img (`Image.Image`):
-            Image to be resized.
+        img (`torch.Tensor`):
+            Image tensor to be resized.
         max_edge_resolution (`int`):
             Maximum edge length (pixel).
         resample_method (`PIL.Image.Resampling`):
@@ -92,7 +95,8 @@ def resize_max_res(
     Returns:
         `Image.Image`: Resized image.
     """
-    original_width, original_height = img.size
+    assert 3 == img.dim()
+    _, original_width, original_height = img.shape
     downscale_factor = min(
         max_edge_resolution / original_width, max_edge_resolution / original_height
     )
@@ -100,15 +104,15 @@ def resize_max_res(
     new_width = int(original_width * downscale_factor)
     new_height = int(original_height * downscale_factor)
 
-    resized_img = img.resize((new_width, new_height), resample=resample_method)
+    resized_img = resize(img, (new_height, new_width), resample_method, antialias=True)
     return resized_img
 
 
-def get_pil_resample_method(method_str: str) -> Resampling:
+def get_tv_resample_method(method_str: str) -> InterpolationMode:
     resample_method_dict = {
-        "bilinear": Resampling.BILINEAR,
-        "bicubic": Resampling.BICUBIC,
-        "nearest": Resampling.NEAREST,
+        "bilinear": InterpolationMode.BILINEAR,
+        "bicubic": InterpolationMode.BICUBIC,
+        "nearest": InterpolationMode.NEAREST,
     }
     resample_method = resample_method_dict.get(method_str, None)
     if resample_method is None:
