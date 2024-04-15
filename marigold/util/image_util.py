@@ -21,7 +21,6 @@
 import matplotlib
 import numpy as np
 import torch
-from PIL import Image
 from torchvision.transforms import InterpolationMode
 from torchvision.transforms.functional import resize
 
