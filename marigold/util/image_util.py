@@ -96,7 +96,7 @@ def resize_max_res(
         `Image.Image`: Resized image.
     """
     assert 3 == img.dim()
-    _, original_width, original_height = img.shape
+    _, original_height, original_width= img.shape
     downscale_factor = min(
         max_edge_resolution / original_width, max_edge_resolution / original_height
     )
