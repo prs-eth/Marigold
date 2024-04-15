@@ -80,7 +80,7 @@ def resize_max_res(
     img: torch.Tensor,
     max_edge_resolution: int,
     resample_method: InterpolationMode = InterpolationMode.BILINEAR,
-) -> Image.Image:
+) -> torch.Tensor:
     """
     Resize image to limit maximum edge length while keeping aspect ratio.
 
@@ -93,10 +93,10 @@ def resize_max_res(
             Resampling method used to resize images.
 
     Returns:
-        `Image.Image`: Resized image.
+        `torch.Tensor`: Resized image.
     """
     assert 3 == img.dim()
-    _, original_height, original_width= img.shape
+    _, original_height, original_width = img.shape
     downscale_factor = min(
         max_edge_resolution / original_width, max_edge_resolution / original_height
     )
