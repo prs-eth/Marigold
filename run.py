@@ -139,6 +139,10 @@ if "__main__" == __name__:
 
     processing_res = args.processing_res
     match_input_res = not args.output_processing_res
+    if 0 == processing_res and match_input_res is False:
+        logging.warning(
+            "Processing at native resolution without resizing output might NOT lead to exactly the same resolution, due to the padding and pooling properties of conv layers."
+        )
     resample_method = args.resample_method
 
     color_map = args.color_map

@@ -161,11 +161,6 @@ class MarigoldPipeline(DiffusionPipeline):
             - **uncertainty** (`None` or `np.ndarray`) Uncalibrated uncertainty(MAD, median absolute deviation)
                     coming from ensembling. None if `ensemble_size = 1`
         """
-
-        if match_input_res is True:
-            assert (
-                processing_res > 0
-            ), "Value error: `match_input_res` is only valid when `processing_res` > 0."
         assert processing_res >= 0
         assert ensemble_size >= 1
 

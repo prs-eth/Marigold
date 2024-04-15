@@ -1,4 +1,4 @@
-# Last modified: 2024-03-30
+# Last modified: 2024-04-15
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,6 +127,10 @@ if "__main__" == __name__:
 
     processing_res = args.processing_res
     match_input_res = not args.output_processing_res
+    if 0 == processing_res and match_input_res is False:
+        logging.warning(
+            "Processing at native resolution without resizing output might NOT lead to exactly the same resolution, due to the padding and pooling properties of conv layers."
+        )
     resample_method = args.resample_method
 
     seed = args.seed
