@@ -20,7 +20,9 @@ dataset_name_class_dict = {
 }
 
 
-def get_dataset(cfg_data_split, base_data_dir: str, mode: DatasetMode, **kwargs) -> BaseDepthDataset:
+def get_dataset(
+    cfg_data_split, base_data_dir: str, mode: DatasetMode, **kwargs
+) -> BaseDepthDataset:
     if cfg_data_split.name in dataset_name_class_dict.keys():
         dataset_class = dataset_name_class_dict[cfg_data_split.name]
         dataset = dataset_class(

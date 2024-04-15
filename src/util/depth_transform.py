@@ -96,4 +96,3 @@ class NearFarMetricNormalizer(DepthNormalizerBase):
 
     def denormalize(self, depth_norm, **kwargs):
         return self.scale_back(depth_norm=depth_norm)
-
