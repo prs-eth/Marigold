@@ -200,13 +200,13 @@ class BaseDepthDataset(Dataset):
         # Set invalid pixel to far plane
         if self.move_invalid_to_far_plane:
             if self.depth_transform.far_plane_at_max:
-                rasters["depth_filled_norm"][
-                    ~rasters["valid_mask_filled"]
-                ] = self.depth_transform.norm_max
+                rasters["depth_filled_norm"][~rasters["valid_mask_filled"]] = (
+                    self.depth_transform.norm_max
+                )
             else:
-                rasters["depth_filled_norm"][
-                    ~rasters["valid_mask_filled"]
-                ] = self.depth_transform.norm_min
+                rasters["depth_filled_norm"][~rasters["valid_mask_filled"]] = (
+                    self.depth_transform.norm_min
+                )
 
         # Resize
         if self.resize_to_hw is not None:
