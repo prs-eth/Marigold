@@ -229,6 +229,13 @@ if "__main__" == __name__:
             # Read input image
             input_image = Image.open(rgb_path)
 
+            # Random number generator
+            if seed is None:
+                generator = None
+            else:
+                generator = torch.Generator(device=device)
+                generator.manual_seed(seed)
+
             # Predict depth
             pipe_out = pipe(
                 input_image,
@@ -240,7 +247,7 @@ if "__main__" == __name__:
                 color_map=color_map,
                 show_progress_bar=True,
                 resample_method=resample_method,
-                seed=seed,
+                generator=generator,
             )
 
             depth_pred: np.ndarray = pipe_out.depth_np
