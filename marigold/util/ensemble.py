@@ -61,7 +61,7 @@ def ensemble_depths(
         scale_factor = torch.min(max_res / torch.tensor(ori_shape[-2:]))
         if scale_factor < 1:
             downscaler = torch.nn.Upsample(scale_factor=scale_factor, mode="nearest")
-            input_images = downscaler(torch.from_numpy(input_images)).numpy()
+            input_images = downscaler(input_images)
 
     # init guess
     _min = np.min(input_images.reshape((n_img, -1)).cpu().numpy(), axis=1)
