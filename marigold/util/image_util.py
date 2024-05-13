@@ -105,7 +105,8 @@ def resize_max_res(
     new_width = int(original_width * downscale_factor)
     new_height = int(original_height * downscale_factor)
 
-    # round it up or down to the next multiple of 8 to avoid upsampling misalignments due to smaller latent dimension
+    # round it up or down to the next multiple of 8
+    # to avoid upsampling misalignments due to smaller latent dimension
     if div8:
         new_width = round(new_width / 8) * 8
         new_height = round(new_height / 8) * 8
