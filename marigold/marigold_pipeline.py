@@ -33,13 +33,13 @@ from diffusers import (
 from diffusers.utils import BaseOutput
 from PIL import Image
 from torch.utils.data import DataLoader, TensorDataset
-from torchvision.transforms.functional import resize, pil_to_tensor
 from torchvision.transforms import InterpolationMode
+from torchvision.transforms.functional import pil_to_tensor, resize
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from .util.batchsize import find_batch_size
-from .util.ensemble import ensemble_depths
+from .util.ensemble import ensemble_depths, ensemble_depths_up2scale
 from .util.image_util import (
     chw2hwc,
     colorize_depth_maps,
@@ -97,8 +97,31 @@ class MarigoldPipeline(DiffusionPipeline):
         scheduler: Union[DDIMScheduler, LCMScheduler],
         text_encoder: CLIPTextModel,
         tokenizer: CLIPTokenizer,
+        prediction_type: str = None,
+        scale_invariant: bool = None,
+        shift_invariant: bool = None,
     ):
         super().__init__()
+
+        if prediction_type is None:
+            logging.warn(
+                "`prediction_type` is required but not given, filled with 'depth'"
+            )
+            prediction_type = "depth"
+        if scale_invariant is None:
+            logging.warn(
+                "`scale_invariant` is required but not given, filled with `True`"
+            )
+            scale_invariant = True
+        if shift_invariant is None:
+            logging.warn(
+                "`shift_invariant` is required but not given, filled with `True`"
+            )
+            shift_invariant = True
+
+        self.prediction_type = prediction_type
+        self.scale_invariant = scale_invariant
+        self.shift_invariant = shift_invariant
 
         self.register_modules(
             unet=unet,
@@ -106,6 +129,11 @@ class MarigoldPipeline(DiffusionPipeline):
             scheduler=scheduler,
             text_encoder=text_encoder,
             tokenizer=tokenizer,
+        )
+        self.register_to_config(
+            prediction_type=prediction_type,
+            scale_invariant=scale_invariant,
+            shift_invariant=shift_invariant,
         )
 
         self.empty_text_embed = None
@@ -152,6 +180,10 @@ class MarigoldPipeline(DiffusionPipeline):
                 Display a progress bar of diffusion denoising.
             color_map (`str`, *optional*, defaults to `"Spectral"`, pass `None` to skip colorized depth map generation):
                 Colormap used to colorize the depth map.
+            scale_invariant (`str`, *optional*, defaults to `True`):
+                Flag of scale-invariant prediction, if True, scale will be adjusted from the raw prediction.
+            shift_invariant (`str`, *optional*, defaults to `True`):
+                Flag of shift-invariant prediction, if True, shift will be adjusted from the raw prediction, if False, near plane will be fixed at 0m.
             ensemble_kwargs (`dict`, *optional*, defaults to `None`):
                 Arguments for detailed ensembling settings.
         Returns:
@@ -236,17 +268,34 @@ class MarigoldPipeline(DiffusionPipeline):
 
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
-            depth_pred, pred_uncert = ensemble_depths(
-                depth_preds, **(ensemble_kwargs or {})
-            )
+            if self.scale_invariant and self.shift_invariant:
+                depth_pred, pred_uncert = ensemble_depths(
+                    depth_preds, **(ensemble_kwargs or {})
+                )
+            elif self.scale_invariant and (not self.shift_invariant):
+                depth_pred, pred_uncert = ensemble_depths_up2scale(
+                    depth_preds, **(ensemble_kwargs or {})
+                )
+            else:
+                raise NotImplementedError("Metric depth is not supported.")
         else:
             depth_pred = depth_preds
             pred_uncert = None
 
         # ----------------- Post processing -----------------
         # Scale prediction to [0, 1]
-        min_d = torch.min(depth_pred)
-        max_d = torch.max(depth_pred)
+        if self.shift_invariant:
+            min_d = torch.min(depth_pred)
+        else:
+            min_d = 0
+
+        if self.scale_invariant:
+            max_d = torch.max(depth_pred)
+        else:
+            raise NotImplementedError(
+                "Metric depth is not supported."
+            )
+
         depth_pred = (depth_pred - min_d) / (max_d - min_d)
 
         # Resize back to original resolution

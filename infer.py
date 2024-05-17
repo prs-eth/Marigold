@@ -1,4 +1,4 @@
-# Last modified: 2024-04-15
+# Last modified: 2024-05-17
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -213,7 +213,10 @@ if "__main__" == __name__:
         logging.debug("run without xformers")
 
     pipe = pipe.to(device)
-
+    logging.info(
+        f"{pipe.prediction_type = }, {pipe.scale_invariant = }, {pipe.shift_invariant = }"
+    )
+    
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
         for batch in tqdm(
