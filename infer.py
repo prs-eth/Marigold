@@ -216,7 +216,7 @@ if "__main__" == __name__:
     logging.info(
         f"{pipe.prediction_type = }, {pipe.scale_invariant = }, {pipe.shift_invariant = }"
     )
-    
+
     # -------------------- Inference and saving --------------------
     with torch.no_grad():
         for batch in tqdm(

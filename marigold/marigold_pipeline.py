@@ -292,9 +292,7 @@ class MarigoldPipeline(DiffusionPipeline):
         if self.scale_invariant:
             max_d = torch.max(depth_pred)
         else:
-            raise NotImplementedError(
-                "Metric depth is not supported."
-            )
+            raise NotImplementedError("Metric depth is not supported.")
 
         depth_pred = (depth_pred - min_d) / (max_d - min_d)
 
