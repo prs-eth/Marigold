@@ -97,17 +97,10 @@ class MarigoldPipeline(DiffusionPipeline):
         scheduler: Union[DDIMScheduler, LCMScheduler],
         text_encoder: CLIPTextModel,
         tokenizer: CLIPTokenizer,
-        prediction_type: str = None,
         scale_invariant: bool = None,
         shift_invariant: bool = None,
     ):
         super().__init__()
-
-        if prediction_type is None:
-            logging.warn(
-                "`prediction_type` is required but not given, filled with 'depth'"
-            )
-            prediction_type = "depth"
         if scale_invariant is None:
             logging.warn(
                 "`scale_invariant` is required but not given, filled with `True`"
@@ -118,8 +111,6 @@ class MarigoldPipeline(DiffusionPipeline):
                 "`shift_invariant` is required but not given, filled with `True`"
             )
             shift_invariant = True
-
-        self.prediction_type = prediction_type
         self.scale_invariant = scale_invariant
         self.shift_invariant = shift_invariant
 
@@ -131,7 +122,6 @@ class MarigoldPipeline(DiffusionPipeline):
             tokenizer=tokenizer,
         )
         self.register_to_config(
-            prediction_type=prediction_type,
             scale_invariant=scale_invariant,
             shift_invariant=shift_invariant,
         )

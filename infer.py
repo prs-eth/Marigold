@@ -1,4 +1,4 @@
-# Last modified: 2024-05-17
+# Last modified: 2024-05-24
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -214,7 +214,7 @@ if "__main__" == __name__:
 
     pipe = pipe.to(device)
     logging.info(
-        f"{pipe.prediction_type = }, {pipe.scale_invariant = }, {pipe.shift_invariant = }"
+        f"scale_invariant: {pipe.scale_invariant}, shift_invariant: {pipe.shift_invariant}"
     )
 
     # -------------------- Inference and saving --------------------
