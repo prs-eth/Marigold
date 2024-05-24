@@ -1,5 +1,5 @@
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
-# Last modified: 2024-04-16
+# Last modified: 2024-05-24
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -113,6 +113,7 @@ def get_tv_resample_method(method_str: str) -> InterpolationMode:
         "bilinear": InterpolationMode.BILINEAR,
         "bicubic": InterpolationMode.BICUBIC,
         "nearest": InterpolationMode.NEAREST_EXACT,
+        "nearest-exact": InterpolationMode.NEAREST_EXACT,
     }
     resample_method = resample_method_dict.get(method_str, None)
     if resample_method is None:

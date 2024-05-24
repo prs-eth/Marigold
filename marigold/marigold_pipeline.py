@@ -39,7 +39,7 @@ from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from .util.batchsize import find_batch_size
-from .util.ensemble import ensemble_depths, ensemble_depths_up2scale
+from .util.ensemble import ensemble_depth
 from .util.image_util import (
     chw2hwc,
     colorize_depth_maps,
@@ -253,50 +253,35 @@ class MarigoldPipeline(DiffusionPipeline):
                 generator=generator,
             )
             depth_pred_ls.append(depth_pred_raw.detach())
-        depth_preds = torch.concat(depth_pred_ls, dim=0).squeeze()
+        depth_preds = torch.concat(depth_pred_ls, dim=0)
         torch.cuda.empty_cache()  # clear vram cache for ensembling
 
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
-            if self.scale_invariant and self.shift_invariant:
-                depth_pred, pred_uncert = ensemble_depths(
-                    depth_preds, **(ensemble_kwargs or {})
-                )
-            elif self.scale_invariant and (not self.shift_invariant):
-                depth_pred, pred_uncert = ensemble_depths_up2scale(
-                    depth_preds, **(ensemble_kwargs or {})
-                )
-            else:
-                raise NotImplementedError("Metric depth is not supported.")
+            depth_pred, pred_uncert = ensemble_depth(
+                depth_preds,
+                scale_invariant=self.scale_invariant,
+                shift_invariant=self.shift_invariant,
+                **(ensemble_kwargs or {}),
+            )
         else:
             depth_pred = depth_preds
             pred_uncert = None
 
-        # ----------------- Post processing -----------------
-        # Scale prediction to [0, 1]
-        if self.shift_invariant:
-            min_d = torch.min(depth_pred)
-        else:
-            min_d = 0
-
-        if self.scale_invariant:
-            max_d = torch.max(depth_pred)
-        else:
-            raise NotImplementedError("Metric depth is not supported.")
-
-        depth_pred = (depth_pred - min_d) / (max_d - min_d)
-
         # Resize back to original resolution
         if match_input_res:
             depth_pred = resize(
-                depth_pred.unsqueeze(0),
+                depth_pred,
                 input_size[1:],
                 interpolation=resample_method,
                 antialias=True,
-            ).squeeze()
+            )
 
         # Convert to numpy
+        depth_pred = depth_pred.squeeze()
         depth_pred = depth_pred.cpu().numpy()
+        if pred_uncert is not None:
+            pred_uncert = pred_uncert.squeeze().cpu().numpy()
 
         # Clip output range
         depth_pred = depth_pred.clip(0, 1)
