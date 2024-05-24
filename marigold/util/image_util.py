@@ -86,7 +86,7 @@ def resize_max_res(
 
     Args:
         img (`torch.Tensor`):
-            Image tensor to be resized.
+            Image tensor to be resized. Expected shape: [B, C, H, W]
         max_edge_resolution (`int`):
             Maximum edge length (pixel).
         resample_method (`PIL.Image.Resampling`):
@@ -95,8 +95,9 @@ def resize_max_res(
     Returns:
         `torch.Tensor`: Resized image.
     """
-    assert 3 == img.dim()
-    _, original_height, original_width = img.shape
+    assert 4 == img.dim(), f"Invalid input shape {img.shape}"
+
+    original_height, original_width = img.shape[-2:]
     downscale_factor = min(
         max_edge_resolution / original_width, max_edge_resolution / original_height
     )

@@ -222,14 +222,15 @@ class MarigoldPipeline(DiffusionPipeline):
             input_image = input_image.convert("RGB")
             # convert to torch tensor [H, W, rgb] -> [rgb, H, W]
             rgb = pil_to_tensor(input_image)
+            rgb = rgb.unsqueeze(0)  # [1, rgb, H, W]
         elif isinstance(input_image, torch.Tensor):
-            rgb = input_image.squeeze()
+            rgb = input_image
         else:
             raise TypeError(f"Unknown input type: {type(input_image) = }")
         input_size = rgb.shape
         assert (
-            3 == rgb.dim() and 3 == input_size[0]
-        ), f"Wrong input shape {input_size}, expected [rgb, H, W]"
+            4 == rgb.dim() and 3 == input_size[-3]
+        ), f"Wrong input shape {input_size}, expected [1, rgb, H, W]"
 
         # Resize image
         if processing_res > 0:
@@ -246,7 +247,7 @@ class MarigoldPipeline(DiffusionPipeline):
 
         # ----------------- Predicting depth -----------------
         # Batch repeated input image
-        duplicated_rgb = torch.stack([rgb_norm] * ensemble_size)
+        duplicated_rgb = rgb_norm.expand(ensemble_size, -1, -1, -1)
         single_rgb_dataset = TensorDataset(duplicated_rgb)
         if batch_size > 0:
             _bs = batch_size
@@ -287,6 +288,7 @@ class MarigoldPipeline(DiffusionPipeline):
                 depth_preds,
                 scale_invariant=self.scale_invariant,
                 shift_invariant=self.shift_invariant,
+                max_res=50,
                 **(ensemble_kwargs or {}),
             )
         else:
@@ -297,7 +299,7 @@ class MarigoldPipeline(DiffusionPipeline):
         if match_input_res:
             depth_pred = resize(
                 depth_pred,
-                input_size[1:],
+                input_size[-2:],
                 interpolation=resample_method,
                 antialias=True,
             )
