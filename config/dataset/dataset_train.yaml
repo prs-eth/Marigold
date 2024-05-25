@@ -1,0 +1,18 @@
+dataset:
+  train:
+    name: mixed
+    prob_ls: [0.9, 0.1]
+    dataset_list:
+    - name: hypersim
+      disp_name: hypersim_train
+      dir: hypersim/hypersim_processed_train.tar
+      filenames: data_split/hypersim/filename_list_train_filtered.txt
+      resize_to_hw:
+      - 480
+      - 640
+    - name: vkitti
+      disp_name: vkitti_train
+      dir: vkitti/vkitti.tar
+      filenames: data_split/vkitti/vkitti_train.txt
+      kitti_bm_crop: true
+      valid_mask_crop: null

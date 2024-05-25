@@ -1,5 +1,3 @@
-# Last modified: 2024-02-08
-#
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,29 +14,41 @@
 # --------------------------------------------------------------------------
 # If you find this code useful, we kindly ask you to cite our paper in your work.
 # Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
 # More information about the method can be found at https://marigoldmonodepth.github.io
 # --------------------------------------------------------------------------
 
-from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
+
+import numpy as np
+import random
+import torch
+import logging
 
 
-class ScanNetDataset(BaseDepthDataset):
-    def __init__(
-        self,
-        **kwargs,
-    ) -> None:
-        super().__init__(
-            # ScanNet data parameter
-            min_depth=1e-3,
-            max_depth=10,
-            has_filled_depth=False,
-            name_mode=DepthFileNameMode.id,
-            **kwargs,
-        )
+def seed_all(seed: int = 0):
+    """
+    Set random seeds of all components.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
-    def _read_depth_file(self, rel_path):
-        depth_in = self._read_image(rel_path)
-        # Decode ScanNet depth
-        depth_decoded = depth_in / 1000.0
-        return depth_decoded
+
+def generate_seed_sequence(
+    initial_seed: int,
+    length: int,
+    min_val=-0x8000_0000_0000_0000,
+    max_val=0xFFFF_FFFF_FFFF_FFFF,
+):
+    if initial_seed is None:
+        logging.warning("initial_seed is None, reproducibility is not guaranteed")
+    random.seed(initial_seed)
+
+    seed_sequence = []
+
+    for _ in range(length):
+        seed = random.randint(min_val, max_val)
+
+        seed_sequence.append(seed)
+
+    return seed_sequence

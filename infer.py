@@ -31,7 +31,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from marigold import MarigoldPipeline
-from src.util.seed_all import seed_all
+from src.util.seeding import seed_all
 from src.dataset import (
     BaseDepthDataset,
     DatasetMode,

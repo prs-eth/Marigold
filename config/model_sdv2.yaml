@@ -1,0 +1,4 @@
+model:
+  name: marigold_pipeline
+  pretrained_path: stable-diffusion-2
+  latent_scale_factor: 0.18215

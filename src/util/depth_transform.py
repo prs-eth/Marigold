@@ -1,7 +1,8 @@
 # Author: Bingxin Ke
-# Last modified: 2024-02-08
+# Last modified: 2024-04-18
 
 import torch
+import logging
 
 
 def get_depth_normalizer(cfg_normalizer):
@@ -12,8 +13,8 @@ def get_depth_normalizer(cfg_normalizer):
 
         depth_transform = identical
 
-    elif "near_far_metric" == cfg_normalizer.type:
-        depth_transform = NearFarMetricNormalizer(
+    elif "scale_shift_depth" == cfg_normalizer.type:
+        depth_transform = ScaleShiftDepthNormalizer(
             norm_min=cfg_normalizer.norm_min,
             norm_max=cfg_normalizer.norm_max,
             min_max_quantile=cfg_normalizer.min_max_quantile,
@@ -25,7 +26,7 @@ def get_depth_normalizer(cfg_normalizer):
 
 
 class DepthNormalizerBase:
-    is_relative = None
+    is_absolute = None
     far_plane_at_max = None
 
     def __init__(
@@ -46,12 +47,15 @@ class DepthNormalizerBase:
         raise NotImplementedError
 
 
-class NearFarMetricNormalizer(DepthNormalizerBase):
+class ScaleShiftDepthNormalizer(DepthNormalizerBase):
     """
-    depth in [0, d_max] -> [-1, 1]
+    Use near and far plane to linearly normalize depth,
+        i.e. d' = d * s + t,
+        where near plane is mapped to `norm_min`, and far plane is mapped to `norm_max`
+    Near and far planes are determined by taking quantile values.
     """
 
-    is_relative = True
+    is_absolute = False
     far_plane_at_max = True
 
     def __init__(
@@ -95,4 +99,5 @@ class NearFarMetricNormalizer(DepthNormalizerBase):
         return depth_linear
 
     def denormalize(self, depth_norm, **kwargs):
+        logging.warning(f"{self.__class__} is not revertible without GT")
         return self.scale_back(depth_norm=depth_norm)

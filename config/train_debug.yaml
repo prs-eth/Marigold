@@ -1,0 +1,12 @@
+base_config:
+- config/train_marigold.yaml
+
+
+# Training settings
+trainer:
+  save_period: 5
+  backup_period: 10
+  validation_period: 5
+  visualization_period: 5
+
+max_iter: 50

@@ -1,0 +1,4 @@
+name: hypersim
+disp_name: hypersim_train
+dir: hypersim/hypersim_processed_train.tar
+filenames: data_split/hypersim/filename_list_train_filtered.txt

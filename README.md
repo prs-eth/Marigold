@@ -160,9 +160,9 @@ The default settings are optimized for the best result. However, the behavior of
   
   - `--processing_res`: the processing resolution; set as 0 to process the input resolution directly. When unassigned (`None`), will read default setting from model config. Default: ~~768~~ `None`.
   - `--output_processing_res`: produce output at the processing resolution instead of upsampling it to the input resolution. Default: False.
-  - `--resample_method`: resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`. Default: `bilinear`.
+  - `--resample_method`: the resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic`, or `nearest`. Default: `bilinear`.
 
-- `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to reduce VRAM usage, might lead to suboptimal result.
+- `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to reduce VRAM usage, which might lead to suboptimal results.
 - `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (unseeded). Note: forcing `--batch_size 1` helps to increase reproducibility. To ensure full reproducibility, [deterministic mode](https://pytorch.org/docs/stable/notes/randomness.html#avoiding-nondeterministic-algorithms) needs to be used.
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
 - `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral. Set to `None` to skip colored depth map generation.
@@ -196,7 +196,7 @@ python run.py \
     --output_dir output/in-the-wild_example
 ```
 
-## 🦿 Evaluation on test datasets
+## 🦿 Evaluation on test datasets <a name="evaluation"></a>
 
 Install additional dependencies:
 
@@ -223,6 +223,43 @@ bash script/eval/12_eval_nyu.sh
 ```
 
 Note: although the seed has been set, the results might still be slightly different on different hardware.
+
+## 🏋️ Training
+
+Based on the previously created environment, install extended requirements:
+
+```bash
+pip install -r requirements++.txt -r requirements+.txt -r requirements.txt
+```
+
+Set environment parameters for the data directory:
+
+```bash
+export BASE_DATA_DIR=YOUR_DATA_DIR  # directory of training data
+export BASE_CKPT_DIR=YOUR_CHECKPOINT_DIR  # directory of pretrained checkpoint
+```
+
+Download Stable Diffusion v2 [checkpoint](https://huggingface.co/stabilityai/stable-diffusion-2) into `${BASE_CKPT_DIR}`
+
+Prepare for [Hypersim](https://github.com/apple/ml-hypersim) and [Virtual KITTI 2](https://europe.naverlabs.com/research/computer-vision/proxy-virtual-worlds-vkitti-2/) datasets and save into `${BASE_DATA_DIR}`. Please refer to [this README](script/dataset_preprocess/hypersim/README.md) for Hypersim preprocessing.
+
+Run training script
+
+```bash
+python train.py --config config/train_marigold.yaml
+```
+
+Resume from a checkpoint, e.g.
+
+```bash
+python train.py --resume_from output/marigold_base/checkpoint/latest
+```
+
+Evaluating results
+
+Only the U-Net is updated and saved during training. To use the inference pipeline with your training result, replace `unet` folder in Marigold checkpoints with that in the `checkpoint` output folder. Then refer to [this section](#evaluation) for evaluation.
+
+**Note**: Although random seeds have been set, the training result might be slightly different on different hardwares. It's recommended to train without interruption.
 
 ## ✏️ Contributing
 

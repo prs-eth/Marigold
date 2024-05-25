@@ -1,0 +1,5 @@
+logging:
+  filename: logging.log
+  format: ' %(asctime)s - %(levelname)s -%(filename)s - %(funcName)s >> %(message)s'
+  console_level: 20
+  file_level: 10

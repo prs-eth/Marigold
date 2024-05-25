@@ -1,0 +1,94 @@
+base_config:
+- config/logging.yaml
+- config/wandb.yaml
+- config/dataset/dataset_train.yaml
+- config/dataset/dataset_val.yaml
+- config/dataset/dataset_vis.yaml
+- config/model_sdv2.yaml
+
+
+pipeline:
+  name: MarigoldPipeline
+  kwargs:
+    scale_invariant: true
+    shift_invariant: true
+
+depth_normalization:
+  type: scale_shift_depth
+  clip: true
+  norm_min: -1.0
+  norm_max: 1.0
+  min_max_quantile: 0.02
+
+augmentation:
+  lr_flip_p: 0.5
+
+dataloader:
+  num_workers: 2
+  effective_batch_size: 32
+  max_train_batch_size: 2
+  seed: 2024  # to ensure continuity when resuming from checkpoint
+
+# Training settings
+trainer:
+  name: MarigoldTrainer
+  training_noise_scheduler:
+    pretrained_path: stable-diffusion-2
+  init_seed: 2024  # use null to train w/o seeding
+  save_period: 50
+  backup_period: 2000
+  validation_period: 2000
+  visualization_period: 2000
+
+multi_res_noise:
+  strength: 0.9
+  annealed: true
+  downscale_strategy: original
+
+gt_depth_type: depth_raw_norm
+gt_mask_type: valid_mask_raw
+
+max_epoch: 10000  # a large enough number
+max_iter: 30000  # usually converges at around 20k
+
+optimizer:
+  name: Adam
+
+loss:
+  name: mse_loss
+  kwargs:
+    reduction: mean
+
+lr: 3.0e-05
+lr_scheduler:
+  name: IterExponential
+  kwargs:
+    total_iter: 25000
+    final_ratio: 0.01
+    warmup_steps: 100
+
+# Validation (and visualization) settings
+validation:
+  denoising_steps: 50
+  ensemble_size: 1  # simplified setting for on-training validation
+  processing_res: 0
+  match_input_res: false
+  resample_method: bilinear
+  main_val_metric: abs_relative_difference
+  main_val_metric_goal: minimize
+  init_seed: 2024
+
+eval:
+  alignment: least_square
+  align_max_res: null
+  eval_metrics:
+  - abs_relative_difference
+  - squared_relative_difference
+  - rmse_linear
+  - rmse_log
+  - log10
+  - delta1_acc
+  - delta2_acc
+  - delta3_acc
+  - i_rmse
+  - silog_rmse

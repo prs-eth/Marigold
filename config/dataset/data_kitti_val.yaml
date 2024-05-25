@@ -1,0 +1,6 @@
+name: kitti
+disp_name: kitti_val800_from_eigen_train
+dir: kitti/kitti_sampled_val_800.tar
+filenames: data_split/kitti/eigen_val_from_train_800.txt
+kitti_bm_crop: true
+valid_mask_crop: eigen

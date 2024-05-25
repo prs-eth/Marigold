@@ -23,9 +23,10 @@
 import torch
 
 from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
+from .kitti_dataset import KITTIDataset
 
 
-class KITTIDataset(BaseDepthDataset):
+class VirtualKITTIDataset(BaseDepthDataset):
     def __init__(
         self,
         kitti_bm_crop,  # Crop to KITTI benchmark size
@@ -33,9 +34,9 @@ class KITTIDataset(BaseDepthDataset):
         **kwargs,
     ) -> None:
         super().__init__(
-            # KITTI data parameter
+            # virtual KITTI data parameter
             min_depth=1e-5,
-            max_depth=80,
+            max_depth=80,  # 655.35
             has_filled_depth=False,
             name_mode=DepthFileNameMode.id,
             **kwargs,
@@ -53,52 +54,25 @@ class KITTIDataset(BaseDepthDataset):
 
     def _read_depth_file(self, rel_path):
         depth_in = self._read_image(rel_path)
-        # Decode KITTI depth
-        depth_decoded = depth_in / 256.0
+        # Decode vKITTI depth
+        depth_decoded = depth_in / 100.0
         return depth_decoded
 
     def _load_rgb_data(self, rgb_rel_path):
         rgb_data = super()._load_rgb_data(rgb_rel_path)
         if self.kitti_bm_crop:
-            rgb_data = {k: self.kitti_benchmark_crop(v) for k, v in rgb_data.items()}
+            rgb_data = {
+                k: KITTIDataset.kitti_benchmark_crop(v) for k, v in rgb_data.items()
+            }
         return rgb_data
 
     def _load_depth_data(self, depth_rel_path, filled_rel_path):
         depth_data = super()._load_depth_data(depth_rel_path, filled_rel_path)
         if self.kitti_bm_crop:
             depth_data = {
-                k: self.kitti_benchmark_crop(v) for k, v in depth_data.items()
+                k: KITTIDataset.kitti_benchmark_crop(v) for k, v in depth_data.items()
             }
         return depth_data
-
-    @staticmethod
-    def kitti_benchmark_crop(input_img):
-        """
-        Crop images to KITTI benchmark size
-        Args:
-            `input_img` (torch.Tensor): Input image to be cropped.
-
-        Returns:
-            torch.Tensor:Cropped image.
-        """
-        KB_CROP_HEIGHT = 352
-        KB_CROP_WIDTH = 1216
-
-        height, width = input_img.shape[-2:]
-        top_margin = int(height - KB_CROP_HEIGHT)
-        left_margin = int((width - KB_CROP_WIDTH) / 2)
-        if 2 == len(input_img.shape):
-            out = input_img[
-                top_margin : top_margin + KB_CROP_HEIGHT,
-                left_margin : left_margin + KB_CROP_WIDTH,
-            ]
-        elif 3 == len(input_img.shape):
-            out = input_img[
-                :,
-                top_margin : top_margin + KB_CROP_HEIGHT,
-                left_margin : left_margin + KB_CROP_WIDTH,
-            ]
-        return out
 
     def _get_valid_mask(self, depth: torch.Tensor):
         # reference: https://github.com/cleinc/bts/blob/master/pytorch/bts_eval.py
