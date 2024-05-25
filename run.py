@@ -62,7 +62,7 @@ if "__main__" == __name__:
     parser.add_argument(
         "--denoise_steps",
         type=int,
-        default=4,
+        default=None,
         help="Diffusion denoising steps, more steps results in higher accuracy but slower inference speed. For the original (DDIM) version, it's recommended to use 10-50 steps, while for LCM 1-4 steps.",
     )
     parser.add_argument(
@@ -82,7 +82,7 @@ if "__main__" == __name__:
     parser.add_argument(
         "--processing_res",
         type=int,
-        default=768,
+        default=None,
         help="Maximum resolution of processing. 0 for using input image resolution. Default: 768.",
     )
     parser.add_argument(
@@ -153,14 +153,6 @@ if "__main__" == __name__:
         batch_size = 1  # set default batchsize
 
     # -------------------- Preparation --------------------
-    # Print out config
-    logging.info(
-        f"Inference settings: checkpoint = `{checkpoint_path}`, "
-        f"with denoise_steps = {denoise_steps}, ensemble_size = {ensemble_size}, "
-        f"processing resolution = {processing_res}, seed = {seed}; "
-        f"color_map = {color_map}."
-    )
-
     # Output directories
     output_dir_color = os.path.join(output_dir, "depth_colored")
     output_dir_tif = os.path.join(output_dir, "depth_bw")
@@ -210,7 +202,7 @@ if "__main__" == __name__:
         dtype = torch.float32
         variant = None
 
-    pipe = MarigoldPipeline.from_pretrained(
+    pipe: MarigoldPipeline = MarigoldPipeline.from_pretrained(
         checkpoint_path, variant=variant, torch_dtype=dtype
     )
 
@@ -220,6 +212,19 @@ if "__main__" == __name__:
         pass  # run without xformers
 
     pipe = pipe.to(device)
+    logging.info(
+        f"scale_invariant: {pipe.scale_invariant}, shift_invariant: {pipe.shift_invariant}"
+    )
+
+    # Print out config
+    logging.info(
+        f"Inference settings: checkpoint = `{checkpoint_path}`, "
+        f"with denoise_steps = {denoise_steps or pipe.default_denoising_steps}, "
+        f"ensemble_size = {ensemble_size}, "
+        f"processing resolution = {processing_res or pipe.default_processing_resolution}, "
+        f"seed = {seed}; "
+        f"color_map = {color_map}."
+    )
 
     # -------------------- Inference and saving --------------------
     with torch.no_grad():

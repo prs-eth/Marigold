@@ -18,10 +18,13 @@
 # --------------------------------------------------------------------------
 
 
+from functools import partial
+from typing import Optional, Tuple
+
 import numpy as np
 import torch
 
-from scipy.optimize import minimize
+from .image_util import get_tv_resample_method, resize_max_res
 
 
 def inter_distances(tensors: torch.Tensor):
@@ -37,96 +40,161 @@ def inter_distances(tensors: torch.Tensor):
     return dist
 
 
-def ensemble_depths(
-    input_images: torch.Tensor,
+def ensemble_depth(
+    depth: torch.Tensor,
+    scale_invariant: bool = True,
+    shift_invariant: bool = True,
+    output_uncertainty: bool = False,
+    reduction: str = "median",
     regularizer_strength: float = 0.02,
     max_iter: int = 2,
     tol: float = 1e-3,
-    reduction: str = "median",
-    max_res: int = None,
-):
+    max_res: int = 1024,
+) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     """
-    To ensemble multiple affine-invariant depth images (up to scale and shift),
-        by aligning estimating the scale and shift
+    Ensembles depth maps represented by the `depth` tensor with expected shape `(B, 1, H, W)`, where B is the
+    number of ensemble members for a given prediction of size `(H x W)`. Even though the function is designed for
+    depth maps, it can also be used with disparity maps as long as the input tensor values are non-negative. The
+    alignment happens when the predictions have one or more degrees of freedom, that is when they are either
+    affine-invariant (`scale_invariant=True` and `shift_invariant=True`), or just scale-invariant (only
+    `scale_invariant=True`). For absolute predictions (`scale_invariant=False` and `shift_invariant=False`)
+    alignment is skipped and only ensembling is performed.
+
+    Args:
+        depth (`torch.Tensor`):
+            Input ensemble depth maps.
+        scale_invariant (`bool`, *optional*, defaults to `True`):
+            Whether to treat predictions as scale-invariant.
+        shift_invariant (`bool`, *optional*, defaults to `True`):
+            Whether to treat predictions as shift-invariant.
+        output_uncertainty (`bool`, *optional*, defaults to `False`):
+            Whether to output uncertainty map.
+        reduction (`str`, *optional*, defaults to `"median"`):
+            Reduction method used to ensemble aligned predictions. The accepted values are: `"mean"` and
+            `"median"`.
+        regularizer_strength (`float`, *optional*, defaults to `0.02`):
+            Strength of the regularizer that pulls the aligned predictions to the unit range from 0 to 1.
+        max_iter (`int`, *optional*, defaults to `2`):
+            Maximum number of the alignment solver steps. Refer to `scipy.optimize.minimize` function, `options`
+            argument.
+        tol (`float`, *optional*, defaults to `1e-3`):
+            Alignment solver tolerance. The solver stops when the tolerance is reached.
+        max_res (`int`, *optional*, defaults to `1024`):
+            Resolution at which the alignment is performed; `None` matches the `processing_resolution`.
+    Returns:
+        A tensor of aligned and ensembled depth maps and optionally a tensor of uncertainties of the same shape:
+        `(1, 1, H, W)`.
     """
-    device = input_images.device
-    dtype = input_images.dtype
-    np_dtype = np.float32
+    if depth.dim() != 4 or depth.shape[1] != 1:
+        raise ValueError(f"Expecting 4D tensor of shape [B,1,H,W]; got {depth.shape}.")
+    if reduction not in ("mean", "median"):
+        raise ValueError(f"Unrecognized reduction method: {reduction}.")
+    if not scale_invariant and shift_invariant:
+        raise ValueError("Pure shift-invariant ensembling is not supported.")
 
-    original_input = input_images.clone()
-    n_img = input_images.shape[0]
-    ori_shape = input_images.shape
+    def init_param(depth: torch.Tensor):
+        init_min = depth.reshape(ensemble_size, -1).min(dim=1).values
+        init_max = depth.reshape(ensemble_size, -1).max(dim=1).values
 
-    if max_res is not None:
-        scale_factor = torch.min(max_res / torch.tensor(ori_shape[-2:]))
-        if scale_factor < 1:
-            downscaler = torch.nn.Upsample(scale_factor=scale_factor, mode="nearest")
-            input_images = downscaler(input_images)
-
-    # init guess
-    _min = np.min(input_images.reshape((n_img, -1)).cpu().numpy(), axis=1)
-    _max = np.max(input_images.reshape((n_img, -1)).cpu().numpy(), axis=1)
-    s_init = 1.0 / (_max - _min).reshape((-1, 1, 1))
-    t_init = (-1 * s_init.flatten() * _min.flatten()).reshape((-1, 1, 1))
-    x = np.concatenate([s_init, t_init]).reshape(-1).astype(np_dtype)
-
-    input_images = input_images.to(device)
-
-    # objective function
-    def closure(x):
-        len_x = len(x)
-        s = x[: int(len_x / 2)]
-        t = x[int(len_x / 2) :]
-        s = torch.from_numpy(s).to(dtype=dtype).to(device)
-        t = torch.from_numpy(t).to(dtype=dtype).to(device)
-
-        transformed_arrays = input_images * s.view((-1, 1, 1)) + t.view((-1, 1, 1))
-        dists = inter_distances(transformed_arrays)
-        sqrt_dist = torch.sqrt(torch.mean(dists**2))
-
-        if "mean" == reduction:
-            pred = torch.mean(transformed_arrays, dim=0)
-        elif "median" == reduction:
-            pred = torch.median(transformed_arrays, dim=0).values
+        if scale_invariant and shift_invariant:
+            init_s = 1.0 / (init_max - init_min).clamp(min=1e-6)
+            init_t = -init_s * init_min
+            param = torch.cat((init_s, init_t)).cpu().numpy()
+        elif scale_invariant:
+            init_s = 1.0 / init_max.clamp(min=1e-6)
+            param = init_s.cpu().numpy()
         else:
-            raise ValueError
+            raise ValueError("Unrecognized alignment.")
 
-        near_err = torch.sqrt((0 - torch.min(pred)) ** 2)
-        far_err = torch.sqrt((1 - torch.max(pred)) ** 2)
+        return param
 
-        err = sqrt_dist + (near_err + far_err) * regularizer_strength
-        err = err.detach().cpu().numpy().astype(np_dtype)
-        return err
+    def align(depth: torch.Tensor, param: np.ndarray) -> torch.Tensor:
+        if scale_invariant and shift_invariant:
+            s, t = np.split(param, 2)
+            s = torch.from_numpy(s).to(depth).view(ensemble_size, 1, 1, 1)
+            t = torch.from_numpy(t).to(depth).view(ensemble_size, 1, 1, 1)
+            out = depth * s + t
+        elif scale_invariant:
+            s = torch.from_numpy(param).to(depth).view(ensemble_size, 1, 1, 1)
+            out = depth * s
+        else:
+            raise ValueError("Unrecognized alignment.")
+        return out
 
-    res = minimize(
-        closure, x, method="BFGS", tol=tol, options={"maxiter": max_iter, "disp": False}
-    )
-    x = res.x
-    len_x = len(x)
-    s = x[: int(len_x / 2)]
-    t = x[int(len_x / 2) :]
+    def ensemble(
+        depth_aligned: torch.Tensor, return_uncertainty: bool = False
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        uncertainty = None
+        if reduction == "mean":
+            prediction = torch.mean(depth_aligned, dim=0, keepdim=True)
+            if return_uncertainty:
+                uncertainty = torch.std(depth_aligned, dim=0, keepdim=True)
+        elif reduction == "median":
+            prediction = torch.median(depth_aligned, dim=0, keepdim=True).values
+            if return_uncertainty:
+                uncertainty = torch.median(
+                    torch.abs(depth_aligned - prediction), dim=0, keepdim=True
+                ).values
+        else:
+            raise ValueError(f"Unrecognized reduction method: {reduction}.")
+        return prediction, uncertainty
 
-    # Prediction
-    s = torch.from_numpy(s).to(dtype=dtype).to(device)
-    t = torch.from_numpy(t).to(dtype=dtype).to(device)
-    transformed_arrays = original_input * s.view(-1, 1, 1) + t.view(-1, 1, 1)
-    if "mean" == reduction:
-        aligned_images = torch.mean(transformed_arrays, dim=0)
-        std = torch.std(transformed_arrays, dim=0)
-        uncertainty = std
-    elif "median" == reduction:
-        aligned_images = torch.median(transformed_arrays, dim=0).values
-        # MAD (median absolute deviation) as uncertainty indicator
-        abs_dev = torch.abs(transformed_arrays - aligned_images)
-        mad = torch.median(abs_dev, dim=0).values
-        uncertainty = mad
+    def cost_fn(param: np.ndarray, depth: torch.Tensor) -> float:
+        cost = 0.0
+        depth_aligned = align(depth, param)
+
+        for i, j in torch.combinations(torch.arange(ensemble_size)):
+            diff = depth_aligned[i] - depth_aligned[j]
+            cost += (diff**2).mean().sqrt().item()
+
+        if regularizer_strength > 0:
+            prediction, _ = ensemble(depth_aligned, return_uncertainty=False)
+            err_near = (0.0 - prediction.min()).abs().item()
+            err_far = (1.0 - prediction.max()).abs().item()
+            cost += (err_near + err_far) * regularizer_strength
+
+        return cost
+
+    def compute_param(depth: torch.Tensor):
+        import scipy
+
+        depth_to_align = depth.to(torch.float32)
+        if max_res is not None and max(depth_to_align.shape[2:]) > max_res:
+            depth_to_align = resize_max_res(
+                depth_to_align, max_res, get_tv_resample_method("nearest-exact")
+            )
+
+        param = init_param(depth_to_align)
+
+        res = scipy.optimize.minimize(
+            partial(cost_fn, depth=depth_to_align),
+            param,
+            method="BFGS",
+            tol=tol,
+            options={"maxiter": max_iter, "disp": False},
+        )
+
+        return res.x
+
+    requires_aligning = scale_invariant or shift_invariant
+    ensemble_size = depth.shape[0]
+
+    if requires_aligning:
+        param = compute_param(depth)
+        depth = align(depth, param)
+
+    depth, uncertainty = ensemble(depth, return_uncertainty=output_uncertainty)
+
+    depth_max = depth.max()
+    if scale_invariant and shift_invariant:
+        depth_min = depth.min()
+    elif scale_invariant:
+        depth_min = 0
     else:
-        raise ValueError(f"Unknown reduction method: {reduction}")
+        raise ValueError("Unrecognized alignment.")
+    depth_range = (depth_max - depth_min).clamp(min=1e-6)
+    depth = (depth - depth_min) / depth_range
+    if output_uncertainty:
+        uncertainty /= depth_range
 
-    # Scale and shift to [0, 1]
-    _min = torch.min(aligned_images)
-    _max = torch.max(aligned_images)
-    aligned_images = (aligned_images - _min) / (_max - _min)
-    uncertainty /= _max - _min
-
-    return aligned_images, uncertainty
+    return depth, uncertainty  # [1,1,H,W], [1,1,H,W]

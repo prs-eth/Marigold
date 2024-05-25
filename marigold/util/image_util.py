@@ -1,5 +1,5 @@
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
-# Last modified: 2024-04-16
+# Last modified: 2024-05-24
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ def resize_max_res(
 
     Args:
         img (`torch.Tensor`):
-            Image tensor to be resized.
+            Image tensor to be resized. Expected shape: [B, C, H, W]
         max_edge_resolution (`int`):
             Maximum edge length (pixel).
         resample_method (`PIL.Image.Resampling`):
@@ -95,8 +95,9 @@ def resize_max_res(
     Returns:
         `torch.Tensor`: Resized image.
     """
-    assert 3 == img.dim()
-    _, original_height, original_width = img.shape
+    assert 4 == img.dim(), f"Invalid input shape {img.shape}"
+
+    original_height, original_width = img.shape[-2:]
     downscale_factor = min(
         max_edge_resolution / original_width, max_edge_resolution / original_height
     )
@@ -113,6 +114,7 @@ def get_tv_resample_method(method_str: str) -> InterpolationMode:
         "bilinear": InterpolationMode.BILINEAR,
         "bicubic": InterpolationMode.BICUBIC,
         "nearest": InterpolationMode.NEAREST_EXACT,
+        "nearest-exact": InterpolationMode.NEAREST_EXACT,
     }
     resample_method = resample_method_dict.get(method_str, None)
     if resample_method is None:

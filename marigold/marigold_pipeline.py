@@ -1,4 +1,5 @@
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+# Last modified: 2024-05-24
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +20,7 @@
 
 
 import logging
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 import numpy as np
 import torch
@@ -33,13 +34,13 @@ from diffusers import (
 from diffusers.utils import BaseOutput
 from PIL import Image
 from torch.utils.data import DataLoader, TensorDataset
-from torchvision.transforms.functional import resize, pil_to_tensor
 from torchvision.transforms import InterpolationMode
+from torchvision.transforms.functional import pil_to_tensor, resize
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
 from .util.batchsize import find_batch_size
-from .util.ensemble import ensemble_depths
+from .util.ensemble import ensemble_depth
 from .util.image_util import (
     chw2hwc,
     colorize_depth_maps,
@@ -85,6 +86,25 @@ class MarigoldPipeline(DiffusionPipeline):
             Text-encoder, for empty text embedding.
         tokenizer (`CLIPTokenizer`):
             CLIP tokenizer.
+        scale_invariant (`bool`, *optional*):
+            A model property specifying whether the predicted depth maps are scale-invariant. This value must be set in
+            the model config. When used together with the `shift_invariant=True` flag, the model is also called
+            "affine-invariant". NB: overriding this value is not supported.
+        shift_invariant (`bool`, *optional*):
+            A model property specifying whether the predicted depth maps are shift-invariant. This value must be set in
+            the model config. When used together with the `scale_invariant=True` flag, the model is also called
+            "affine-invariant". NB: overriding this value is not supported.
+        default_denoising_steps (`int`, *optional*):
+            The minimum number of denoising diffusion steps that are required to produce a prediction of reasonable
+            quality with the given model. This value must be set in the model config. When the pipeline is called
+            without explicitly setting `num_inference_steps`, the default value is used. This is required to ensure
+            reasonable results with various model flavors compatible with the pipeline, such as those relying on very
+            short denoising schedules (`LCMScheduler`) and those with full diffusion schedules (`DDIMScheduler`).
+        default_processing_resolution (`int`, *optional*):
+            The recommended value of the `processing_resolution` parameter of the pipeline. This value must be set in
+            the model config. When the pipeline is called without explicitly setting `processing_resolution`, the
+            default value is used. This is required to ensure reasonable results with various model flavors trained
+            with varying optimal processing resolution values.
     """
 
     rgb_latent_scale_factor = 0.18215
@@ -97,9 +117,12 @@ class MarigoldPipeline(DiffusionPipeline):
         scheduler: Union[DDIMScheduler, LCMScheduler],
         text_encoder: CLIPTextModel,
         tokenizer: CLIPTokenizer,
+        scale_invariant: Optional[bool] = True,
+        shift_invariant: Optional[bool] = True,
+        default_denoising_steps: Optional[int] = None,
+        default_processing_resolution: Optional[int] = None,
     ):
         super().__init__()
-
         self.register_modules(
             unet=unet,
             vae=vae,
@@ -107,6 +130,17 @@ class MarigoldPipeline(DiffusionPipeline):
             text_encoder=text_encoder,
             tokenizer=tokenizer,
         )
+        self.register_to_config(
+            scale_invariant=scale_invariant,
+            shift_invariant=shift_invariant,
+            default_denoising_steps=default_denoising_steps,
+            default_processing_resolution=default_processing_resolution,
+        )
+
+        self.scale_invariant = scale_invariant
+        self.shift_invariant = shift_invariant
+        self.default_denoising_steps = default_denoising_steps
+        self.default_processing_resolution = default_processing_resolution
 
         self.empty_text_embed = None
 
@@ -114,9 +148,9 @@ class MarigoldPipeline(DiffusionPipeline):
     def __call__(
         self,
         input_image: Union[Image.Image, torch.Tensor],
-        denoising_steps: int = 10,
-        ensemble_size: int = 10,
-        processing_res: int = 768,
+        denoising_steps: Optional[int] = None,
+        ensemble_size: int = 5,
+        processing_res: Optional[int] = None,
         match_input_res: bool = True,
         resample_method: str = "bilinear",
         batch_size: int = 0,
@@ -131,18 +165,21 @@ class MarigoldPipeline(DiffusionPipeline):
         Args:
             input_image (`Image`):
                 Input RGB (or gray-scale) image.
-            processing_res (`int`, *optional*, defaults to `768`):
-                Maximum resolution of processing.
-                If set to 0: will not resize at all.
+            denoising_steps (`int`, *optional*, defaults to `None`):
+                Number of denoising diffusion steps during inference. The default value `None` results in automatic
+                selection. The number of steps should be at least 10 with the full Marigold models, and between 1 and 4
+                for Marigold-LCM models.
+            ensemble_size (`int`, *optional*, defaults to `10`):
+                Number of predictions to be ensembled.
+            processing_res (`int`, *optional*, defaults to `None`):
+                Effective processing resolution. When set to `0`, processes at the original image resolution. This
+                produces crisper predictions, but may also lead to the overall loss of global context. The default
+                value `None` resolves to the optimal value from the model config.
             match_input_res (`bool`, *optional*, defaults to `True`):
                 Resize depth prediction to match input resolution.
                 Only valid if `processing_res` > 0.
             resample_method: (`str`, *optional*, defaults to `bilinear`):
                 Resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic` or `nearest`, defaults to: `bilinear`.
-            denoising_steps (`int`, *optional*, defaults to `10`):
-                Number of diffusion denoising steps (DDIM) during inference.
-            ensemble_size (`int`, *optional*, defaults to `10`):
-                Number of predictions to be ensembled.
             batch_size (`int`, *optional*, defaults to `0`):
                 Inference batch size, no bigger than `num_ensemble`.
                 If set to 0, the script will automatically decide the proper batch size.
@@ -152,6 +189,10 @@ class MarigoldPipeline(DiffusionPipeline):
                 Display a progress bar of diffusion denoising.
             color_map (`str`, *optional*, defaults to `"Spectral"`, pass `None` to skip colorized depth map generation):
                 Colormap used to colorize the depth map.
+            scale_invariant (`str`, *optional*, defaults to `True`):
+                Flag of scale-invariant prediction, if True, scale will be adjusted from the raw prediction.
+            shift_invariant (`str`, *optional*, defaults to `True`):
+                Flag of shift-invariant prediction, if True, shift will be adjusted from the raw prediction, if False, near plane will be fixed at 0m.
             ensemble_kwargs (`dict`, *optional*, defaults to `None`):
                 Arguments for detailed ensembling settings.
         Returns:
@@ -161,6 +202,12 @@ class MarigoldPipeline(DiffusionPipeline):
             - **uncertainty** (`None` or `np.ndarray`) Uncalibrated uncertainty(MAD, median absolute deviation)
                     coming from ensembling. None if `ensemble_size = 1`
         """
+        # Model-specific optimal default values leading to fast and reasonable results.
+        if denoising_steps is None:
+            denoising_steps = self.default_denoising_steps
+        if processing_res is None:
+            processing_res = self.default_processing_resolution
+
         assert processing_res >= 0
         assert ensemble_size >= 1
 
@@ -175,14 +222,15 @@ class MarigoldPipeline(DiffusionPipeline):
             input_image = input_image.convert("RGB")
             # convert to torch tensor [H, W, rgb] -> [rgb, H, W]
             rgb = pil_to_tensor(input_image)
+            rgb = rgb.unsqueeze(0)  # [1, rgb, H, W]
         elif isinstance(input_image, torch.Tensor):
-            rgb = input_image.squeeze()
+            rgb = input_image
         else:
             raise TypeError(f"Unknown input type: {type(input_image) = }")
         input_size = rgb.shape
         assert (
-            3 == rgb.dim() and 3 == input_size[0]
-        ), f"Wrong input shape {input_size}, expected [rgb, H, W]"
+            4 == rgb.dim() and 3 == input_size[-3]
+        ), f"Wrong input shape {input_size}, expected [1, rgb, H, W]"
 
         # Resize image
         if processing_res > 0:
@@ -199,7 +247,7 @@ class MarigoldPipeline(DiffusionPipeline):
 
         # ----------------- Predicting depth -----------------
         # Batch repeated input image
-        duplicated_rgb = torch.stack([rgb_norm] * ensemble_size)
+        duplicated_rgb = rgb_norm.expand(ensemble_size, -1, -1, -1)
         single_rgb_dataset = TensorDataset(duplicated_rgb)
         if batch_size > 0:
             _bs = batch_size
@@ -231,35 +279,36 @@ class MarigoldPipeline(DiffusionPipeline):
                 generator=generator,
             )
             depth_pred_ls.append(depth_pred_raw.detach())
-        depth_preds = torch.concat(depth_pred_ls, dim=0).squeeze()
+        depth_preds = torch.concat(depth_pred_ls, dim=0)
         torch.cuda.empty_cache()  # clear vram cache for ensembling
 
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
-            depth_pred, pred_uncert = ensemble_depths(
-                depth_preds, **(ensemble_kwargs or {})
+            depth_pred, pred_uncert = ensemble_depth(
+                depth_preds,
+                scale_invariant=self.scale_invariant,
+                shift_invariant=self.shift_invariant,
+                max_res=50,
+                **(ensemble_kwargs or {}),
             )
         else:
             depth_pred = depth_preds
             pred_uncert = None
 
-        # ----------------- Post processing -----------------
-        # Scale prediction to [0, 1]
-        min_d = torch.min(depth_pred)
-        max_d = torch.max(depth_pred)
-        depth_pred = (depth_pred - min_d) / (max_d - min_d)
-
         # Resize back to original resolution
         if match_input_res:
             depth_pred = resize(
-                depth_pred.unsqueeze(0),
-                input_size[1:],
+                depth_pred,
+                input_size[-2:],
                 interpolation=resample_method,
                 antialias=True,
-            ).squeeze()
+            )
 
         # Convert to numpy
+        depth_pred = depth_pred.squeeze()
         depth_pred = depth_pred.cpu().numpy()
+        if pred_uncert is not None:
+            pred_uncert = pred_uncert.squeeze().cpu().numpy()
 
         # Clip output range
         depth_pred = depth_pred.clip(0, 1)
