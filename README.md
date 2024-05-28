@@ -28,6 +28,7 @@ We present Marigold, a diffusion model and associated fine-tuning protocol for m
 ![teaser](doc/teaser_collage_transparant.png)
 
 ## 📢 News
+2024-05-28: Training code is released.<br>
 2024-03-23: Added [LCM v1.0](https://huggingface.co/prs-eth/marigold-lcm-v1-0) for faster inference - try it out at [![Hugging Face (LCM) Space](https://img.shields.io/badge/🤗%20Hugging%20Face(LCM)-Space-yellow)](https://huggingface.co/spaces/prs-eth/marigold-lcm)<br>
 2024-03-04: Accepted to CVPR 2024. <br>
 2023-12-22: Contributed to Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation). <br>
