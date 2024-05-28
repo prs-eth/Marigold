@@ -1,0 +1,45 @@
+dataset:
+  val:
+  # - name: hypersim
+  #   disp_name: hypersim_val
+  #   dir: hypersim/hypersim_processed_val.tar
+  #   filenames: data_split/hypersim/filename_list_val_filtered.txt
+  #   resize_to_hw:
+  #   - 480
+  #   - 640
+
+  # - name: nyu_v2
+  #   disp_name: nyu_train_full
+  #   dir: nyuv2/nyu_labeled_extracted.tar
+  #   filenames: data_split/nyu/labeled/filename_list_train.txt
+  #   eigen_valid_mask: true
+
+  # - name: kitti
+  #   disp_name: kitti_val800_from_eigen_train
+  #   dir: kitti/kitti_sampled_val_800.tar
+  #   filenames: data_split/kitti/eigen_val_from_train_800.txt
+  #   kitti_bm_crop: true
+  #   valid_mask_crop: eigen
+
+  # Smaller subsets for faster validation during training
+  # The first dataset is used to calculate main eval metric.
+  - name: hypersim
+    disp_name: hypersim_val_small_80
+    dir: hypersim/hypersim_processed_val.tar
+    filenames: data_split/hypersim/filename_list_val_filtered_small_80.txt
+    resize_to_hw:
+    - 480
+    - 640
+
+  - name: nyu_v2
+    disp_name: nyu_train_small_100
+    dir: nyuv2/nyu_labeled_extracted.tar
+    filenames: data_split/nyu/labeled/filename_list_train_small_100.txt
+    eigen_valid_mask: true
+
+  - name: kitti
+    disp_name: kitti_val_from_train_sub_100
+    dir: kitti/kitti_sampled_val_800.tar
+    filenames: data_split/kitti/eigen_val_from_train_sub_100.txt
+    kitti_bm_crop: true
+    valid_mask_crop: eigen

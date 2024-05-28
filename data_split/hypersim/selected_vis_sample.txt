@@ -1,0 +1,3 @@
+ai_015_004/rgb_cam_00_fr0002.png ai_015_004/depth_plane_cam_00_fr0002.png  (val)
+ai_044_003/rgb_cam_01_fr0063.png ai_044_003/depth_plane_cam_01_fr0063.png  (val)
+ai_052_003/rgb_cam_01_fr0076.png ai_052_003/depth_plane_cam_01_fr0076.png  (val)

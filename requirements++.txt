@@ -1,0 +1,6 @@
+h5py
+opencv-python
+tensorboard
+wandb
+xformers==0.0.21
+

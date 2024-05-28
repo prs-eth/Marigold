@@ -1,0 +1,3 @@
+wandb:
+  # entity: your_entity
+  project: marigold

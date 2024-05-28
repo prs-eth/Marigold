@@ -1,0 +1,6 @@
+name: vkitti
+disp_name: vkitti_train
+dir: vkitti/vkitti.tar
+filenames: data_split/vkitti/vkitti_train.txt
+kitti_bm_crop: true
+valid_mask_crop: null  # no valid_mask_crop for training

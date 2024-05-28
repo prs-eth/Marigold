@@ -1,0 +1,5 @@
+name: nyu_v2
+disp_name: nyu_train_full
+dir: nyuv2/nyu_labeled_extracted.tar
+filenames: data_split/nyu/labeled/filename_list_train.txt
+eigen_valid_mask: true

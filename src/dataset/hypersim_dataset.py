@@ -1,3 +1,5 @@
+# Last modified: 2024-02-08
+#
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +16,30 @@
 # --------------------------------------------------------------------------
 # If you find this code useful, we kindly ask you to cite our paper in your work.
 # Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
+# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
 # More information about the method can be found at https://marigoldmonodepth.github.io
 # --------------------------------------------------------------------------
 
 
-import numpy as np
-import random
-import torch
+from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
 
 
-def seed_all(seed: int = 0):
-    """
-    Set random seeds of all components.
-    """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+class HypersimDataset(BaseDepthDataset):
+    def __init__(
+        self,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            # Hypersim data parameter
+            min_depth=1e-5,
+            max_depth=65.0,
+            has_filled_depth=False,
+            name_mode=DepthFileNameMode.rgb_i_d,
+            **kwargs,
+        )
+
+    def _read_depth_file(self, rel_path):
+        depth_in = self._read_image(rel_path)
+        # Decode Hypersim depth
+        depth_decoded = depth_in / 1000.0
+        return depth_decoded

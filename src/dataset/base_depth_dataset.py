@@ -1,11 +1,31 @@
-# Author: Bingxin Ke
-# Last modified: 2024-04-15
+# Last modified: 2024-04-30
+#
+# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# --------------------------------------------------------------------------
+# If you find this code useful, we kindly ask you to cite our paper in your work.
+# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
+# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
+# More information about the method can be found at https://marigoldmonodepth.github.io
+# --------------------------------------------------------------------------
 
 import io
 import os
 import random
 import tarfile
 from enum import Enum
+from typing import Union
 
 import numpy as np
 import torch
@@ -13,11 +33,22 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import InterpolationMode, Resize
 
+from src.util.depth_transform import DepthNormalizerBase
+
 
 class DatasetMode(Enum):
     RGB_ONLY = "rgb_only"
     EVAL = "evaluate"
     TRAIN = "train"
+
+
+class DepthFileNameMode(Enum):
+    """Prediction file naming modes"""
+
+    id = 1  # id.png
+    rgb_id = 2  # rgb_id.png
+    i_d_rgb = 3  # i_d_1_rgb.png
+    rgb_i_d = 4
 
 
 def read_image_from_tar(tar_obj, img_rel_path):
@@ -33,11 +64,11 @@ class BaseDepthDataset(Dataset):
         filename_ls_path: str,
         dataset_dir: str,
         disp_name: str,
-        min_depth,
-        max_depth,
-        has_filled_depth,
-        name_mode,
-        depth_transform=None,
+        min_depth: float,
+        max_depth: float,
+        has_filled_depth: bool,
+        name_mode: DepthFileNameMode,
+        depth_transform: Union[DepthNormalizerBase, None] = None,
         augmentation_args: dict = None,
         resize_to_hw=None,
         move_invalid_to_far_plane: bool = True,
@@ -49,6 +80,9 @@ class BaseDepthDataset(Dataset):
         # dataset info
         self.filename_ls_path = filename_ls_path
         self.dataset_dir = dataset_dir
+        assert os.path.exists(
+            self.dataset_dir
+        ), f"Dataset does not exist at: {self.dataset_dir}"
         self.disp_name = disp_name
         self.has_filled_depth = has_filled_depth
         self.name_mode: DepthFileNameMode = name_mode
@@ -56,7 +90,7 @@ class BaseDepthDataset(Dataset):
         self.max_depth = max_depth
 
         # training arguments
-        self.depth_transform = depth_transform
+        self.depth_transform: DepthNormalizerBase = depth_transform
         self.augm_args = augmentation_args
         self.resize_to_hw = resize_to_hw
         self.rgb_transform = rgb_transform
@@ -118,9 +152,11 @@ class BaseDepthDataset(Dataset):
     def _load_rgb_data(self, rgb_rel_path):
         # Read RGB data
         rgb = self._read_rgb_file(rgb_rel_path)
+        rgb_norm = rgb / 255.0 * 2.0 - 1.0  #  [0, 255] -> [-1, 1]
 
         outputs = {
             "rgb_int": torch.from_numpy(rgb).int(),
+            "rgb_norm": torch.from_numpy(rgb_norm).float(),
         }
         return outputs
 
@@ -157,12 +193,12 @@ class BaseDepthDataset(Dataset):
         if self.is_tar:
             if self.tar_obj is None:
                 self.tar_obj = tarfile.open(self.dataset_dir)
-            image = self.tar_obj.extractfile("./" + img_rel_path)
-            image = image.read()
-            image = Image.open(io.BytesIO(image))  # [H, W, rgb]
+            image_to_read = self.tar_obj.extractfile("./" + img_rel_path)
+            image_to_read = image_to_read.read()
+            image_to_read = io.BytesIO(image_to_read)
         else:
-            img_path = os.path.join(self.dataset_dir, img_rel_path)
-            image = Image.open(img_path)
+            image_to_read = os.path.join(self.dataset_dir, img_rel_path)
+        image = Image.open(image_to_read)  # [H, W, rgb]
         image = np.asarray(image)
         return image
 
@@ -226,17 +262,9 @@ class BaseDepthDataset(Dataset):
         return rasters_dict
 
     def __del__(self):
-        if self.tar_obj is not None:
+        if hasattr(self, "tar_obj") and self.tar_obj is not None:
             self.tar_obj.close()
             self.tar_obj = None
-
-
-# Prediction file naming modes
-class DepthFileNameMode(Enum):
-    id = 1  # id.png
-    rgb_id = 2  # rgb_id.png
-    i_d_rgb = 3  # i_d_1_rgb.png
-    rgb_i_d = 4
 
 
 def get_pred_name(rgb_basename, name_mode, suffix=".png"):
