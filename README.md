@@ -163,7 +163,7 @@ The default settings are optimized for the best result. However, the behavior of
   - `--output_processing_res`: produce output at the processing resolution instead of upsampling it to the input resolution. Default: False.
   - `--resample_method`: the resampling method used to resize images and depth predictions. This can be one of `bilinear`, `bicubic`, or `nearest`. Default: `bilinear`.
 
-- `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to reduce VRAM usage, which might lead to suboptimal results.
+- `--half_precision` or `--fp16`: Run with half-precision (16-bit float) to have faster speed and reduced VRAM usage, but might lead to suboptimal results.
 - `--seed`: Random seed can be set to ensure additional reproducibility. Default: None (unseeded). Note: forcing `--batch_size 1` helps to increase reproducibility. To ensure full reproducibility, [deterministic mode](https://pytorch.org/docs/stable/notes/randomness.html#avoiding-nondeterministic-algorithms) needs to be used.
 - `--batch_size`: Batch size of repeated inference. Default: 0 (best value determined automatically).
 - `--color_map`: [Colormap](https://matplotlib.org/stable/users/explain/colors/colormaps.html) used to colorize the depth prediction. Default: Spectral. Set to `None` to skip colored depth map generation.
