@@ -6,11 +6,11 @@ This repository represents the official implementation of the paper titled "Repu
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
 [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)](https://arxiv.org/abs/2312.02145)
+[![Hugging Face (LCM) Space](https://img.shields.io/badge/🤗%20Hugging%20Face%20(LCM)-Space-yellow)](https://huggingface.co/spaces/prs-eth/marigold-lcm)
+[![Hugging Face (LCM) Model](https://img.shields.io/badge/🤗%20Hugging%20Face%20(LCM)-Model-green)](https://huggingface.co/prs-eth/marigold-lcm-v1-0)
 [![Open In Colab](doc/badges/badge-colab.svg)](https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing)
-[![Hugging Face (LCM) Space](https://img.shields.io/badge/🤗%20Hugging%20Face(LCM)-Space-yellow)](https://huggingface.co/spaces/prs-eth/marigold-lcm)
-[![Hugging Face (LCM) Model](https://img.shields.io/badge/🤗%20Hugging%20Face(LCM)-Model-green)](https://huggingface.co/prs-eth/marigold-lcm-v1-0)
-<!-- [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-green)](https://huggingface.co/prs-eth/marigold-v1-0) -->
 [![License](https://img.shields.io/badge/License-Apache--2.0-929292)](https://www.apache.org/licenses/LICENSE-2.0)
+<!-- [![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-green)](https://huggingface.co/prs-eth/marigold-v1-0) -->
 <!-- [![Website](https://img.shields.io/badge/Project-Website-1081c2)](https://arxiv.org/abs/2312.02145) -->
 <!-- [![GitHub](https://img.shields.io/github/stars/prs-eth/Marigold?style=default&label=GitHub%20★&logo=github)](https://github.com/prs-eth/Marigold) -->
 <!-- [![HF Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-blue)]() -->
@@ -23,13 +23,13 @@ This repository represents the official implementation of the paper titled "Repu
 [Rodrigo Caye Daudt](https://rcdaudt.github.io/),
 [Konrad Schindler](https://scholar.google.com/citations?user=FZuNgqIAAAAJ&hl=en )
 
-We present Marigold, a diffusion model and associated fine-tuning protocol for monocular depth estimation. Its core principle is to leverage the rich visual knowledge stored in modern generative image models. Our model, derived from Stable Diffusion and fine-tuned with synthetic data, can zero-shot transfer to unseen data, offering state-of-the-art monocular depth estimation results.
+We present Marigold, a diffusion model, and associated fine-tuning protocol for monocular depth estimation. Its core principle is to leverage the rich visual knowledge stored in modern generative image models. Our model, derived from Stable Diffusion and fine-tuned with synthetic data, can zero-shot transfer to unseen data, offering state-of-the-art monocular depth estimation results.
 
 ![teaser](doc/teaser_collage_transparant.png)
 
 ## 📢 News
 2024-05-28: Training code is released.<br>
-2024-03-23: Added [LCM v1.0](https://huggingface.co/prs-eth/marigold-lcm-v1-0) for faster inference - try it out at [![Hugging Face (LCM) Space](https://img.shields.io/badge/🤗%20Hugging%20Face(LCM)-Space-yellow)](https://huggingface.co/spaces/prs-eth/marigold-lcm)<br>
+2024-03-23: Added [LCM v1.0](https://huggingface.co/prs-eth/marigold-lcm-v1-0) for faster inference - try it out at <a href="https://huggingface.co/spaces/prs-eth/marigold-lcm"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face%20(LCM)-Space-yellow" height="16"></a><br>
 2024-03-04: Accepted to CVPR 2024. <br>
 2023-12-22: Contributed to Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation). <br>
 2023-12-19: Updated [license](LICENSE.txt) to Apache License, Version 2.0.<br>
@@ -43,19 +43,19 @@ paper and inference code (this repository).
 
 **We offer several ways to interact with Marigold**:
 
-1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/prs-eth/marigold-lcm"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face(LCM)-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
+1. We integrated [Marigold Pipelines into diffusers 🧨](https://huggingface.co/docs/diffusers/api/pipelines/marigold). Check out many exciting usage scenarios in [this diffusers tutorial](https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage).
+
+1. A free online interactive demo is available here: <a href="https://huggingface.co/spaces/prs-eth/marigold-lcm"><img src="https://img.shields.io/badge/🤗%20Hugging%20Face%20(LCM)-Space-yellow" height="16"></a> (kudos to the HF team for the GPU grant)
 
 1. Run the demo locally (requires a GPU and an `nvidia-docker2`, see [Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)):
     1. Paper version: `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/toshas-marigold:latest python app.py`
     1. LCM version: `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/prs-eth-marigold-lcm:latest python app.py`
 
-1. Run with Diffusers [community pipeline](https://github.com/huggingface/diffusers/tree/main/examples/community#marigold-depth-estimation) (requires `diffusers >= 0.25.0`).
-
 1. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
 
 1. If you just want to see the examples, visit our gallery: <a href="https://marigoldmonodepth.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
 
-1. Finally, local development instructions are given below.
+1. Finally, local development instructions with this codebase are given below.
 
 ## 🛠️ Setup
 
