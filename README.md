@@ -253,7 +253,7 @@ python train.py --config config/train_marigold.yaml
 Resume from a checkpoint, e.g.
 
 ```bash
-python train.py --resume_from output/marigold_base/checkpoint/latest
+python train.py --resume_run output/marigold_base/checkpoint/latest
 ```
 
 Evaluating results
