@@ -1,5 +1,5 @@
 # An official reimplemented version of Marigold training script.
-# Last modified: 2024-04-29
+# Last modified: 2024-08-16
 #
 # Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
 #
@@ -507,7 +507,7 @@ class MarigoldTrainer:
         ):
             assert 1 == data_loader.batch_size
             # Read input image
-            rgb_int = batch["rgb_int"].squeeze()  # [3, H, W]
+            rgb_int = batch["rgb_int"]  # [B, 3, H, W]
             # GT depth
             depth_raw_ts = batch["depth_raw_linear"].squeeze()
             depth_raw = depth_raw_ts.numpy()
