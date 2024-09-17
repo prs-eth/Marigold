@@ -61,10 +61,7 @@ paper and inference code (this repository).
 
 The inference code was tested on:
 
-- Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip, Mamba)
-- CentOS Linux 7, Python 3.10.4, CUDA 11.7, GeForce RTX 4090 (pip)
-- Windows 11 22H2, Python 3.10.12, CUDA 12.3, GeForce RTX 3080 (Mamba)
-- MacOS 14.2, Python 3.10.12, M1 16G (pip)
+- Ubuntu 22.04 LTS, Python 3.10.12,  CUDA 11.7, GeForce RTX 3090 (pip)
 
 ### 🪧 A Note for Windows users
 
