@@ -2,6 +2,6 @@ accelerate>=0.22.0
 diffusers>=0.25.0
 matplotlib
 scipy
-torch==2.2.0
+torch==2.0.1
 torchvision==0.15.2
 transformers>=4.32.1
