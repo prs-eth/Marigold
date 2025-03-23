@@ -20,3 +20,9 @@
 *.mexa64
 *.pdf
 *.tar
+
+# ignore files and dirs with temp in the name
+*temp*
+
+
+

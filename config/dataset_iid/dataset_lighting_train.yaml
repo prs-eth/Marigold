@@ -1,0 +1,12 @@
+dataset:
+  train:
+    name: mixed
+    prob_ls: [1.0]
+    dataset_list:
+    - name: hypersim_iid
+      disp_name: hypersim_iid_lighting_train
+      dir: hypersim
+      filenames: data_split/hypersim_iid/hypersim_train_filtered.txt
+      resize_to_hw:
+      - 480
+      - 640

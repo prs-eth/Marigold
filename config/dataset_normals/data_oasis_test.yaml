@@ -1,0 +1,4 @@
+name: oasis_normals
+disp_name: oasis_normals_test
+dir: oasis/val
+filenames: data_split/oasis_normals/oasis_test.txt

@@ -1,0 +1,6 @@
+dataset:
+  vis:
+  - name: hypersim_iid
+    disp_name: hypersim_iid_lighting_vis
+    dir: hypersim
+    filenames: data_split/hypersim_iid/hypersim_vis.txt

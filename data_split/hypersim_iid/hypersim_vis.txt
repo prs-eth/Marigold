@@ -1,0 +1,5 @@
+test/ai_048_010/rgb_cam_00_fr0042.png test/ai_048_010/albedo_cam_00_fr0042.npy test/ai_048_010/shading_cam_00_fr0042.npy test/ai_048_010/residual_cam_00_fr0042.npy test/ai_048_010/shading_stats_cam_00_fr0042.json
+test/ai_015_010/rgb_cam_00_fr0072.png test/ai_015_010/albedo_cam_00_fr0072.npy test/ai_015_010/shading_cam_00_fr0072.npy test/ai_015_010/residual_cam_00_fr0072.npy test/ai_015_010/shading_stats_cam_00_fr0072.json
+test/ai_048_008/rgb_cam_03_fr0028.png test/ai_048_008/albedo_cam_03_fr0028.npy test/ai_048_008/shading_cam_03_fr0028.npy test/ai_048_008/residual_cam_03_fr0028.npy test/ai_048_008/shading_stats_cam_03_fr0028.json
+test/ai_044_004/rgb_cam_01_fr0091.png test/ai_044_004/albedo_cam_01_fr0091.npy test/ai_044_004/shading_cam_01_fr0091.npy test/ai_044_004/residual_cam_01_fr0091.npy test/ai_044_004/shading_stats_cam_01_fr0091.json
+test/ai_022_003/rgb_cam_00_fr0054.png test/ai_022_003/albedo_cam_00_fr0054.npy test/ai_022_003/shading_cam_00_fr0054.npy test/ai_022_003/residual_cam_00_fr0054.npy test/ai_022_003/shading_stats_cam_00_fr0054.json

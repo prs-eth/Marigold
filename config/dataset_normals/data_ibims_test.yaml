@@ -1,0 +1,4 @@
+name: ibims_normals
+disp_name: ibims_normals_test
+dir: ibims/ibims
+filenames: data_split/ibims_normals/ibims_test.txt

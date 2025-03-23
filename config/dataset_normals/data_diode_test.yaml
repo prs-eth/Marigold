@@ -1,0 +1,4 @@
+name: diode_normals
+disp_name: diode_normals_test
+dir: diode/val
+filenames: data_split/diode_normals/diode_test.txt

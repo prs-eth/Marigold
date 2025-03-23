@@ -1,0 +1,4 @@
+name: scannet_depth
+disp_name: scannet_depth_val_800_1
+dir: scannet/scannet_val_sampled_800_1.tar
+filenames: data_split/scannet_depth/scannet_val_sampled_list_800_1.txt

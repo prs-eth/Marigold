@@ -1,6 +1,4 @@
-# Last modified: 2024-02-08
-#
-# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+# Copyright 2023-2025 Marigold Team, ETH Zürich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,19 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # --------------------------------------------------------------------------
-# If you find this code useful, we kindly ask you to cite our paper in your work.
-# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
-# More information about the method can be found at https://marigoldmonodepth.github.io
+# More information about Marigold:
+#   https://marigoldmonodepth.github.io
+#   https://marigoldcomputervision.github.io
+# Efficient inference pipelines are now part of diffusers:
+#   https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage
+#   https://huggingface.co/docs/diffusers/api/pipelines/marigold
+# Examples of trained models and live demos:
+#   https://huggingface.co/prs-eth
+# Related projects:
+#   https://rollingdepth.github.io/
+#   https://marigolddepthcompletion.github.io/
+# Citation (BibTeX):
+#   https://github.com/prs-eth/Marigold#-citation
+# If you find Marigold useful, we kindly ask you to cite our papers.
 # --------------------------------------------------------------------------
 
 import torch
 
 from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
-from .kitti_dataset import KITTIDataset
+from .kitti_dataset import KITTIDepthDataset
 
 
-class VirtualKITTIDataset(BaseDepthDataset):
+class VirtualKITTIDepthDataset(BaseDepthDataset):
     def __init__(
         self,
         kitti_bm_crop,  # Crop to KITTI benchmark size
@@ -62,7 +70,8 @@ class VirtualKITTIDataset(BaseDepthDataset):
         rgb_data = super()._load_rgb_data(rgb_rel_path)
         if self.kitti_bm_crop:
             rgb_data = {
-                k: KITTIDataset.kitti_benchmark_crop(v) for k, v in rgb_data.items()
+                k: KITTIDepthDataset.kitti_benchmark_crop(v)
+                for k, v in rgb_data.items()
             }
         return rgb_data
 
@@ -70,7 +79,8 @@ class VirtualKITTIDataset(BaseDepthDataset):
         depth_data = super()._load_depth_data(depth_rel_path, filled_rel_path)
         if self.kitti_bm_crop:
             depth_data = {
-                k: KITTIDataset.kitti_benchmark_crop(v) for k, v in depth_data.items()
+                k: KITTIDepthDataset.kitti_benchmark_crop(v)
+                for k, v in depth_data.items()
             }
         return depth_data
 

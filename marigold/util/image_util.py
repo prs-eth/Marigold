@@ -1,5 +1,4 @@
-# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
-# Last modified: 2024-05-24
+# Copyright 2023-2025 Marigold Team, ETH Zürich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # --------------------------------------------------------------------------
-# If you find this code useful, we kindly ask you to cite our paper in your work.
-# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# More information about the method can be found at https://marigoldmonodepth.github.io
+# More information about Marigold:
+#   https://marigoldmonodepth.github.io
+#   https://marigoldcomputervision.github.io
+# Efficient inference pipelines are now part of diffusers:
+#   https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage
+#   https://huggingface.co/docs/diffusers/api/pipelines/marigold
+# Examples of trained models and live demos:
+#   https://huggingface.co/prs-eth
+# Related projects:
+#   https://rollingdepth.github.io/
+#   https://marigolddepthcompletion.github.io/
+# Citation (BibTeX):
+#   https://github.com/prs-eth/Marigold#-citation
+# If you find Marigold useful, we kindly ask you to cite our papers.
 # --------------------------------------------------------------------------
-
 
 import matplotlib
 import numpy as np
@@ -73,6 +82,8 @@ def chw2hwc(chw):
         hwc = torch.permute(chw, (1, 2, 0))
     elif isinstance(chw, np.ndarray):
         hwc = np.moveaxis(chw, 0, -1)
+    else:
+        raise TypeError("img should be np.ndarray or torch.Tensor")
     return hwc
 
 
@@ -121,3 +132,18 @@ def get_tv_resample_method(method_str: str) -> InterpolationMode:
         raise ValueError(f"Unknown resampling method: {resample_method}")
     else:
         return resample_method
+
+
+def float2int(img):
+    if isinstance(img, np.ndarray):
+        return (img * 255.0).astype(np.uint8)
+    else:
+        return (img * 255.0).to(torch.uint8)
+
+
+def srgb2linear(img):
+    return img**2.2
+
+
+def linear2srgb(img):
+    return img ** (1.0 / 2.2)

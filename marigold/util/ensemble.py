@@ -1,4 +1,4 @@
-# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+# Copyright 2023-2025 Marigold Team, ETH Zürich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,32 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # --------------------------------------------------------------------------
-# If you find this code useful, we kindly ask you to cite our paper in your work.
-# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# More information about the method can be found at https://marigoldmonodepth.github.io
+# More information about Marigold:
+#   https://marigoldmonodepth.github.io
+#   https://marigoldcomputervision.github.io
+# Efficient inference pipelines are now part of diffusers:
+#   https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage
+#   https://huggingface.co/docs/diffusers/api/pipelines/marigold
+# Examples of trained models and live demos:
+#   https://huggingface.co/prs-eth
+# Related projects:
+#   https://rollingdepth.github.io/
+#   https://marigolddepthcompletion.github.io/
+# Citation (BibTeX):
+#   https://github.com/prs-eth/Marigold#-citation
+# If you find Marigold useful, we kindly ask you to cite our papers.
 # --------------------------------------------------------------------------
-
-
-from functools import partial
-from typing import Optional, Tuple
 
 import numpy as np
 import torch
+from functools import partial
+from typing import Optional, Tuple
 
 from .image_util import get_tv_resample_method, resize_max_res
-
-
-def inter_distances(tensors: torch.Tensor):
-    """
-    To calculate the distance between each two depth maps.
-    """
-    distances = []
-    for i, j in torch.combinations(torch.arange(tensors.shape[0])):
-        arr1 = tensors[i : i + 1]
-        arr2 = tensors[j : j + 1]
-        distances.append(arr1 - arr2)
-    dist = torch.concatenate(distances, dim=0)
-    return dist
 
 
 def ensemble_depth(
@@ -47,8 +43,8 @@ def ensemble_depth(
     output_uncertainty: bool = False,
     reduction: str = "median",
     regularizer_strength: float = 0.02,
-    max_iter: int = 2,
-    tol: float = 1e-3,
+    max_iter: int = 50,
+    tol: float = 1e-6,
     max_res: int = 1024,
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     """
@@ -106,7 +102,7 @@ def ensemble_depth(
         else:
             raise ValueError("Unrecognized alignment.")
 
-        return param
+        return param.astype(np.float64)
 
     def align(depth: torch.Tensor, param: np.ndarray) -> torch.Tensor:
         if scale_invariant and shift_invariant:
@@ -198,3 +194,77 @@ def ensemble_depth(
         uncertainty /= depth_range
 
     return depth, uncertainty  # [1,1,H,W], [1,1,H,W]
+
+
+def ensemble_normals(
+    normals: torch.Tensor,
+    output_uncertainty: bool = False,
+    reduction: str = "closest",
+) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    """
+    Ensembles the normals maps represented by the `normals` tensor with expected shape `(B, 3, H, W)`, where B is
+    the number of ensemble members for a given prediction of size `(H x W)`.
+
+    Args:
+        normals (`torch.Tensor`):
+            Input ensemble normals maps.
+        output_uncertainty (`bool`, *optional*, defaults to `False`):
+            Whether to output uncertainty map.
+        reduction (`str`, *optional*, defaults to `"closest"`):
+            Reduction method used to ensemble aligned predictions. The accepted values are: `"closest"` and
+            `"mean"`.
+
+    Returns:
+        A tensor of aligned and ensembled normals maps with shape `(1, 3, H, W)` and optionally a tensor of
+        uncertainties of shape `(1, 1, H, W)`.
+    """
+    if normals.dim() != 4 or normals.shape[1] != 3:
+        raise ValueError(
+            f"Expecting 4D tensor of shape [B,3,H,W]; got {normals.shape}."
+        )
+    if reduction not in ("closest", "mean"):
+        raise ValueError(f"Unrecognized reduction method: {reduction}.")
+
+    mean_normals = normals.mean(dim=0, keepdim=True)  # [1,3,H,W]
+    norm = torch.norm(mean_normals, dim=1, keepdim=True)
+    mean_normals /= norm.clamp(min=1e-6)  # [1,3,H,W]
+
+    sim_cos = None
+    if output_uncertainty or (reduction != "mean"):
+        sim_cos = (mean_normals * normals).sum(dim=1, keepdim=True)  # [E,1,H,W]
+        sim_cos = sim_cos.clamp(-1, 1)  # required to avoid NaN in uncertainty with fp16
+
+    uncertainty = None
+    if output_uncertainty:
+        uncertainty = sim_cos.arccos()  # [E,1,H,W]
+        uncertainty = uncertainty.mean(dim=0, keepdim=True) / np.pi  # [1,1,H,W]
+
+    if reduction == "mean":
+        return mean_normals, uncertainty  # [1,3,H,W], [1,1,H,W]
+
+    closest_indices = sim_cos.argmax(dim=0, keepdim=True)  # [1,1,H,W]
+    closest_indices = closest_indices.repeat(1, 3, 1, 1)  # [1,3,H,W]
+    closest_normals = torch.gather(normals, 0, closest_indices)  # [1,3,H,W]
+
+    return closest_normals, uncertainty  # [1,3,H,W], [1,1,H,W]
+
+
+def ensemble_iid(
+    targets: torch.Tensor,
+    output_uncertainty: bool = False,
+    reduction: str = "median",
+) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    uncertainty = None
+    if reduction == "mean":
+        prediction = torch.mean(targets, dim=0, keepdim=True)
+        if output_uncertainty:
+            uncertainty = torch.std(targets, dim=0, keepdim=True)
+    elif reduction == "median":
+        prediction = torch.median(targets, dim=0, keepdim=True).values
+        if output_uncertainty:
+            uncertainty = torch.median(
+                torch.abs(targets - prediction), dim=0, keepdim=True
+            ).values
+    else:
+        raise ValueError(f"Unrecognized reduction method: {reduction}.")
+    return prediction, uncertainty

@@ -1,0 +1,4 @@
+name: diode_depth
+disp_name: diode_depth_val_all
+dir: diode/diode_val.tar
+filenames: data_split/diode_depth/diode_val_all_filename_list.txt

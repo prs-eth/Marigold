@@ -1,0 +1,4 @@
+name: hypersim_iid
+disp_name: hypersim_iid_lighting_test
+dir: hypersim
+filenames: data_split/hypersim_iid/hypersim_test.txt

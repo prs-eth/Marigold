@@ -1,0 +1,6 @@
+dataset:
+  val:
+  - name: interiorverse_iid
+    disp_name: interiorverse_iid_appearance_val
+    dir: interiorverse/InteriorVerse.tar
+    filenames: data_split/interiorverse_iid/interiorverse_val_scenes_85_small.txt

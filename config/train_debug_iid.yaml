@@ -1,0 +1,11 @@
+base_config:
+  # - config/train_marigold_iid_lighting.yaml
+  - config/train_marigold_iid_appearance.yaml
+
+trainer:
+  save_period: 10
+  backup_period: 10
+  validation_period: 5
+  visualization_period: 5
+
+max_iter: 50
