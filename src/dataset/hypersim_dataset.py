@@ -32,7 +32,7 @@ import torch
 
 from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
 from .base_normals_dataset import BaseNormalsDataset
-from .base_iid_dataset import BaseIIDDataset, DatasetMode
+from .base_iid_dataset import BaseIIDDataset
 
 
 class HypersimDepthDataset(BaseDepthDataset):

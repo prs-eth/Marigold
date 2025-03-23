@@ -34,7 +34,6 @@ import shutil
 import torch
 from datetime import datetime
 from diffusers import DDPMScheduler, DDIMScheduler
-from itertools import product
 from omegaconf import OmegaConf
 from torchmetrics.image import PeakSignalNoiseRatio
 from torch.nn import Conv2d
@@ -46,15 +45,12 @@ from tqdm import tqdm
 from typing import List, Union
 
 from marigold.marigold_iid_pipeline import MarigoldIIDPipeline, MarigoldIIDOutput
-from src.util import metric
 from src.util.data_loader import skip_first_batches
 from src.util.image_util import (
     img_normalize,
-    write_img,
     img_float2int,
     img_srgb2linear,
     img_linear2srgb,
-    img_chw2hwc,
 )
 from src.util.logging_util import tb_logger, eval_dict_to_text
 from src.util.loss import get_loss
@@ -63,7 +59,6 @@ from src.util.metric import MetricTracker
 from src.util.multi_res_noise import multi_res_noise_like
 from src.util.seeding import generate_seed_sequence
 from src.util.metric import compute_iid_metric
-from marigold.util.image_util import linear2srgb
 
 
 class MarigoldIIDTrainer:
