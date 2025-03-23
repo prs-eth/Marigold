@@ -132,9 +132,9 @@ class MarigoldNormalsTrainer:
         )
 
         self.prediction_type = self.training_noise_scheduler.config.prediction_type
-        assert self.prediction_type == self.model.scheduler.config.prediction_type, (
-            "Different prediction types"
-        )
+        assert (
+            self.prediction_type == self.model.scheduler.config.prediction_type
+        ), "Different prediction types"
         self.scheduler_timesteps = (
             self.training_noise_scheduler.config.num_train_timesteps
         )
@@ -154,9 +154,9 @@ class MarigoldNormalsTrainer:
         self.main_val_metric = cfg.validation.main_val_metric
         self.main_val_metric_goal = cfg.validation.main_val_metric_goal
 
-        assert self.main_val_metric in cfg.eval.eval_metrics, (
-            f"Main eval metric `{self.main_val_metric}` not found in evaluation metrics."
-        )
+        assert (
+            self.main_val_metric in cfg.eval.eval_metrics
+        ), f"Main eval metric `{self.main_val_metric}` not found in evaluation metrics."
 
         self.best_metric = 1e8 if "minimize" == self.main_val_metric_goal else -1e8
 
@@ -185,7 +185,9 @@ class MarigoldNormalsTrainer:
         self.n_batch_in_epoch = 0  # batch index in the epoch, used when resume training
         self.effective_iter = 0  # how many times optimizer.step() is called
         self.in_evaluation = False
-        self.global_seed_sequence: List = []  # consistent global seed sequence, used to seed random generator, to ensure consistency when resuming
+        self.global_seed_sequence: List = (
+            []
+        )  # consistent global seed sequence, used to seed random generator, to ensure consistency when resuming
 
     def _replace_unet_conv_in(self):
         # replace the first layer to accept 8 in_channels

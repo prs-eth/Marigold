@@ -58,9 +58,9 @@ def align_depth_least_square(
                 .numpy()
             )
 
-    assert gt.shape == pred.shape == valid_mask.shape, (
-        f"{gt.shape}, {pred.shape}, {valid_mask.shape}"
-    )
+    assert (
+        gt.shape == pred.shape == valid_mask.shape
+    ), f"{gt.shape}, {pred.shape}, {valid_mask.shape}"
 
     gt_masked = gt[valid_mask].reshape((-1, 1))
     pred_masked = pred[valid_mask].reshape((-1, 1))

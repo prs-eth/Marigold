@@ -63,9 +63,9 @@ class BaseNormalsDataset(Dataset):
         # dataset info
         self.filename_ls_path = filename_ls_path
         self.dataset_dir = dataset_dir
-        assert os.path.exists(self.dataset_dir), (
-            f"Dataset does not exist at: {self.dataset_dir}"
-        )
+        assert os.path.exists(
+            self.dataset_dir
+        ), f"Dataset does not exist at: {self.dataset_dir}"
         self.disp_name = disp_name
 
         # training arguments

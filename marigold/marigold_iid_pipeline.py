@@ -307,9 +307,9 @@ class MarigoldIIDPipeline(DiffusionPipeline):
         else:
             raise TypeError(f"Unknown input type: {type(input_image) = }")
         input_size = rgb.shape
-        assert 4 == rgb.dim() and 3 == input_size[-3], (
-            f"Wrong input shape {input_size}, expected [1, rgb, H, W]"
-        )
+        assert (
+            4 == rgb.dim() and 3 == input_size[-3]
+        ), f"Wrong input shape {input_size}, expected [1, rgb, H, W]"
 
         # Resize image
         if processing_res > 0:
@@ -509,7 +509,9 @@ class MarigoldIIDPipeline(DiffusionPipeline):
             self.encode_empty_text()
         batch_empty_text_embed = self.empty_text_embed.repeat(
             (rgb_latent.shape[0], 1, 1)
-        ).to(device)  # [B, 2, 1024]
+        ).to(
+            device
+        )  # [B, 2, 1024]
 
         # Denoising loop
         if show_pbar:

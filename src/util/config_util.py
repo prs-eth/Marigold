@@ -42,9 +42,9 @@ def recursive_load_config(config_path: str) -> OmegaConf:
     if base_configs is not None:
         assert isinstance(base_configs, omegaconf.listconfig.ListConfig)
         for _path in base_configs:
-            assert _path != config_path, (
-                "Circulate merging, base_config should not include itself."
-            )
+            assert (
+                _path != config_path
+            ), "Circulate merging, base_config should not include itself."
             _base_conf = recursive_load_config(_path)
             output_conf = OmegaConf.merge(output_conf, _base_conf)
 

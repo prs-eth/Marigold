@@ -59,9 +59,9 @@ def tone_map(img, scale):
     img_scaled = scale * img
     img_scaled_clipped = np.maximum(img_scaled, 0)
     mask_scaled_negative = img_scaled != img_scaled_clipped
-    assert np.count_nonzero(mask_scaled_negative) == 0, (
-        f"{img_scaled[mask_scaled_negative]=}"
-    )
+    assert (
+        np.count_nonzero(mask_scaled_negative) == 0
+    ), f"{img_scaled[mask_scaled_negative]=}"
     img = np.power(img_scaled_clipped, gamma)
     img = np.clip(img, 0, 1)
     return img

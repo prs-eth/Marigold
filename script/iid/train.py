@@ -274,9 +274,9 @@ if "__main__" == __name__:
     logging.debug("Augmentation: ", cfg.augmentation)
     if "mixed" == cfg_data.train.name:
         dataset_ls = train_dataset
-        assert len(cfg_data.train.prob_ls) == len(dataset_ls), (
-            "Lengths don't match: `prob_ls` and `dataset_list`"
-        )
+        assert len(cfg_data.train.prob_ls) == len(
+            dataset_ls
+        ), "Lengths don't match: `prob_ls` and `dataset_list`"
         concat_dataset = ConcatDataset(dataset_ls)
         mixed_sampler = MixedBatchSampler(
             src_dataset_ls=dataset_ls,

@@ -198,9 +198,9 @@ def compute_cosine_error(pred_norm, gt_norm, masked=False):
         gt_norm = gt_norm.squeeze(0)
 
     # shape must be [3,H,W]
-    assert (gt_norm.shape[0] == 3) and (pred_norm.shape[0] == 3), (
-        "Channel dim should be the first dimension!"
-    )
+    assert (gt_norm.shape[0] == 3) and (
+        pred_norm.shape[0] == 3
+    ), "Channel dim should be the first dimension!"
     # mask out the zero vectors, otherwise torch.cosine_similarity computes 90° as error
     if masked:
         ch, h, w = gt_norm.shape
