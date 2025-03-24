@@ -198,9 +198,7 @@ class MarigoldIIDTrainer:
         self.n_batch_in_epoch = 0  # batch index in the epoch, used when resume training
         self.effective_iter = 0  # how many times optimizer.step() is called
         self.in_evaluation = False
-        self.global_seed_sequence: List = (
-            []
-        )  # consistent global seed sequence, used to seed random generator, to ensure consistency when resuming
+        self.global_seed_sequence: List = []  # consistent global seed sequence, used to seed random generator, to ensure consistency when resuming
 
     def _replace_unet_conv_in_out_multimodal(self):
         n_outputs = self.model.n_targets

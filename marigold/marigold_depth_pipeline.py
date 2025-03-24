@@ -439,9 +439,7 @@ class MarigoldDepthPipeline(DiffusionPipeline):
             self.encode_empty_text()
         batch_empty_text_embed = self.empty_text_embed.repeat(
             (rgb_latent.shape[0], 1, 1)
-        ).to(
-            device
-        )  # [B, 2, 1024]
+        ).to(device)  # [B, 2, 1024]
 
         # Denoising loop
         if show_pbar:
