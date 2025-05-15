@@ -14,8 +14,8 @@ Adaptation of Diffusion-Based Image Generators for Image Analysis"**.
 [![Intrinsics Demo](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-iid)
 [![Depth Model](https://img.shields.io/badge/🤗%20Depth-Model-green)](https://huggingface.co/prs-eth/marigold-depth-v1-1)
 [![Normals Model](https://img.shields.io/badge/🤗%20Normals-Model-green)](https://huggingface.co/prs-eth/marigold-normals-v1-1)
-[![Intrinsics Appearance Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Appearance-Model-green)](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1)
-[![Intrinsics Lighting Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Lighting-Model-green)](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1)
+[![Intrinsics Appearance Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics%20Appearance-Model-green)](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1)
+[![Intrinsics Lighting Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics%20Lighting-Model-green)](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1)
 [![Diffusers Tutorial](doc/badges/badge-hfdiffusers.svg)](https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage)
 
 Team:
@@ -467,7 +467,7 @@ Please refer to [this](CONTRIBUTING.md) instruction.
 
 ## 🎓 Citation
 
-Please cite our paper:
+Please cite our papers:
 
 ```bibtex
 @InProceedings{ke2023repurposing,
