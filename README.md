@@ -32,7 +32,7 @@ monocular depth estimation results.
 ## Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldcomputervision.github.io)
-[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2312.02145)
+[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2505.09358)
 [![Depth Demo](https://img.shields.io/badge/🤗%20Depth-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold)
 [![Normals Demo](https://img.shields.io/badge/🤗%20Normals-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-normals)
 [![Intrinsics Demo](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-iid)
@@ -474,6 +474,15 @@ Please cite our paper:
       author={Bingxin Ke and Anton Obukhov and Shengyu Huang and Nando Metzger and Rodrigo Caye Daudt and Konrad Schindler},
       booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
       year={2024}
+}
+
+@misc{ke2025marigold,
+  title={Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis},
+  author={Bingxin Ke and Kevin Qu and Tianfu Wang and Nando Metzger and Shengyu Huang and Bo Li and Anton Obukhov and Konrad Schindler},
+  year={2025},
+  eprint={2505.09358},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
 }
 ```
 
