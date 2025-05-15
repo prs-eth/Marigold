@@ -5,6 +5,37 @@ extracting high-resolution depth maps in our CVPR 2024 paper **"Repurposing Diff
 Depth Estimation"**, we extended the method to other modalities as described in our follow-up paper **"Marigold: Affordable 
 Adaptation of Diffusion-Based Image Generators for Image Analysis"**. 
 
+## Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis
+
+[![Website](doc/badges/badge-website.svg)](https://marigoldcomputervision.github.io)
+[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2505.09358)
+[![Depth Demo](https://img.shields.io/badge/🤗%20Depth-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold)
+[![Normals Demo](https://img.shields.io/badge/🤗%20Normals-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-normals)
+[![Intrinsics Demo](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-iid)
+[![Depth Model](https://img.shields.io/badge/🤗%20Depth-Model-green)](https://huggingface.co/prs-eth/marigold-depth-v1-1)
+[![Normals Model](https://img.shields.io/badge/🤗%20Normals-Model-green)](https://huggingface.co/prs-eth/marigold-normals-v1-1)
+[![Intrinsics Appearance Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Appearance-Model-green)](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1)
+[![Intrinsics Lighting Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Lighting-Model-green)](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1)
+[![Diffusers Tutorial](doc/badges/badge-hfdiffusers.svg)](https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage)
+
+Team:
+[Bingxin Ke](http://www.kebingxin.com/),
+[Kevin Qu](https://www.linkedin.com/in/kevin-qu-b3417621b/),
+[Tianfu Wang](https://tianfwang.github.io/)
+[Nando Metzger](https://nandometzger.github.io/),
+[Shengyu Huang](https://shengyuh.github.io/),
+[Bo Li](https://www.linkedin.com/in/bobboli0202/),
+[Anton Obukhov](https://www.obukhov.ai/),
+[Konrad Schindler](https://scholar.google.com/citations?user=FZuNgqIAAAAJ)
+
+We present Marigold, a family of conditional generative models and a fine-tuning protocol that extracts the knowledge 
+from pretrained latent diffusion models like Stable Diffusion and adapts them for dense image analysis tasks, including 
+monocular depth estimation, surface normal prediction, and intrinsic decomposition. Marigold requires minimal 
+modification of the pre-trained latent diffusion model's architecture, trains with small synthetic datasets on a single 
+GPU over a few days, and demonstrates state-of-the-art zero-shot generalization.
+
+![teaser_all](doc/teaser_marigold_all.jpg)
+
 ## Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation
 
 [![Website](doc/badges/badge-website.svg)](https://marigoldmonodepth.github.io)
@@ -22,42 +53,12 @@ Team:
 [Rodrigo Caye Daudt](https://rcdaudt.github.io/),
 [Konrad Schindler](https://scholar.google.com/citations?user=FZuNgqIAAAAJ)
 
-We present Marigold, a diffusion model, and associated fine-tuning protocol for monocular depth estimation. Its core 
+We present Marigold, a diffusion model, and an associated fine-tuning protocol for monocular depth estimation. Its core 
 principle is to leverage the rich visual knowledge stored in modern generative image models. Our model, derived from 
 Stable Diffusion and fine-tuned with synthetic data, can zero-shot transfer to unseen data, offering state-of-the-art 
 monocular depth estimation results.
 
 ![teaser_depth](doc/teaser_marigold_depth.png)
-
-## Marigold: Affordable Adaptation of Diffusion-Based Image Generators for Image Analysis
-
-[![Website](doc/badges/badge-website.svg)](https://marigoldcomputervision.github.io)
-[![Paper](doc/badges/badge-pdf.svg)](https://arxiv.org/abs/2505.09358)
-[![Depth Demo](https://img.shields.io/badge/🤗%20Depth-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold)
-[![Normals Demo](https://img.shields.io/badge/🤗%20Normals-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-normals)
-[![Intrinsics Demo](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Demo-yellow)](https://huggingface.co/spaces/prs-eth/marigold-iid)
-[![Depth Model](https://img.shields.io/badge/🤗%20Depth-Model-green)](https://huggingface.co/prs-eth/marigold-depth-v1-1)
-[![Normals Model](https://img.shields.io/badge/🤗%20Normals-Model-green)](https://huggingface.co/prs-eth/marigold-normals-v1-1)
-[![Intrinsics Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics-Model-green)](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1)
-[![Diffusers](doc/badges/badge-hfdiffusers.svg)](https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage)
-
-Team:
-[Bingxin Ke](http://www.kebingxin.com/),
-[Kevin Qu](https://www.linkedin.com/in/kevin-qu-b3417621b/),
-[Tianfu Wang](https://tianfwang.github.io/)
-[Nando Metzger](https://nandometzger.github.io/),
-[Shengyu Huang](https://shengyuh.github.io/),
-[Bo Li](https://www.linkedin.com/in/bobboli0202/),
-[Konrad Schindler](https://scholar.google.com/citations?user=FZuNgqIAAAAJ),
-[Anton Obukhov](https://www.obukhov.ai/)
-
-We present Marigold, a family of conditional generative models and a fine-tuning protocol that extracts the knowledge 
-from pretrained latent diffusion models like Stable Diffusion and adapts them for dense image analysis tasks, including 
-monocular depth estimation, surface normal prediction, and intrinsic decomposition. Marigold requires minimal 
-modification of the pre-trained latent diffusion model's architecture, trains with small synthetic datasets on a single 
-GPU over a few days, and demonstrates state-of-the-art zero-shot generalization.
-
-![teaser_all](doc/teaser_marigold_all.jpg)
 
 ## 📢 News
 2025-05-15: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1) of Marigold Intrinsic Image Decomposition predicting Albedo, diffuse Shading, and non-diffuse Residual (Marigold-IID-Lighting v1.1).<br>
