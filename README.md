@@ -60,10 +60,10 @@ GPU over a few days, and demonstrates state-of-the-art zero-shot generalization.
 ![teaser_all](doc/teaser_marigold_all.jpg)
 
 ## 📢 News
-2025-03-24: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1) of Marigold Intrinsic Image Decomposition predicting Albedo, diffuse Shading, and non-diffuse Residual (Marigold-IID-Lighting v1.1).<br>
-2025-03-24: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1) of Marigold Intrinsic Image Decomposition predicting Albedo, Roughness, and Metallicity (Marigold-IID-Appearance v1.1).<br>
-2025-03-24: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-normals-v1-1) of Marigold Surface Normals Estimation (v1.1).<br>
-2025-03-24: Released an updated [checkpoint](https://huggingface.co/prs-eth/marigold-depth-v1-1) of Marigold Depth (v1.1), trained with updated noise scheduler settings (zero-SNR and trailing timestamps), and augmentations.<br>
+2025-05-15: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1) of Marigold Intrinsic Image Decomposition predicting Albedo, diffuse Shading, and non-diffuse Residual (Marigold-IID-Lighting v1.1).<br>
+2025-05-15: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1) of Marigold Intrinsic Image Decomposition predicting Albedo, Roughness, and Metallicity (Marigold-IID-Appearance v1.1).<br>
+2025-05-15: Released code and a [checkpoint](https://huggingface.co/prs-eth/marigold-normals-v1-1) of Marigold Surface Normals Estimation (v1.1).<br>
+2025-05-15: Released an updated [checkpoint](https://huggingface.co/prs-eth/marigold-depth-v1-1) of Marigold Depth (v1.1), trained with updated noise scheduler settings (zero-SNR and trailing timestamps), and augmentations.<br>
 2024-05-28: Training code is released.<br>
 2024-05-27: Marigold pipelines are merged into the `diffusers` core starting v0.28.0 [release](https://github.com/huggingface/diffusers/releases/tag/v0.28.0)!<br>
 2024-03-23: Added a Latent Consistency Model (LCM) [checkpoint](https://huggingface.co/prs-eth/marigold-depth-lcm-v1-0).<br>
