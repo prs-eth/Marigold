@@ -2,5 +2,6 @@ h5py
 opencv-python
 tensorboard
 wandb
-xformers==0.0.27.post2
+scikit-learn
+xformers==0.0.28
 

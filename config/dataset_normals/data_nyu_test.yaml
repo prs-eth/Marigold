@@ -1,0 +1,4 @@
+name: nyu_normals
+disp_name: nyu_normals_test
+dir: nyuv2/test
+filenames: data_split/nyu_normals/nyuv2_test.txt

@@ -1,0 +1,90 @@
+base_config:
+- config/logging.yaml
+- config/wandb.yaml
+- config/dataset_iid/dataset_lighting_train.yaml
+- config/dataset_iid/dataset_lighting_val.yaml
+- config/dataset_iid/dataset_lighting_vis.yaml
+- config/model_sdv2.yaml
+
+pipeline:
+  name: MarigoldIIDPipeline
+  kwargs:
+    default_denoising_steps: 4
+    default_processing_resolution: 768
+    target_properties:
+      target_names:
+      - albedo
+      - shading
+      - residual
+      albedo:
+        prediction_space: linear
+        up_to_scale: false
+      shading:
+        prediction_space: linear
+        up_to_scale: true 
+      residual:
+        prediction_space: linear
+        up_to_scale: true
+
+augmentation:
+  lr_flip_p: 0.5
+
+dataloader:
+  num_workers: 2
+  effective_batch_size: 32
+  max_train_batch_size: 2
+  seed: 2024  # to ensure continuity when resuming from checkpoint
+
+trainer:
+  name: MarigoldIIDTrainer
+  training_noise_scheduler:
+    pretrained_path: stable-diffusion-2
+  init_seed: 2024  # use null to train w/o seeding
+  save_period: 50
+  backup_period: 2000
+  validation_period: 500
+  visualization_period: 1000
+
+multi_res_noise:
+  strength: 0.9
+  annealed: true
+  downscale_strategy: original
+
+gt_mask_type: null
+
+max_epoch: 10000  # a large enough number
+max_iter: 50000  # usually converges at around 34k
+
+optimizer:
+  name: Adam
+
+loss:
+  name: mse_loss
+  kwargs:
+    reduction: mean
+
+lr: 8e-05
+lr_scheduler:
+  name: IterExponential
+  kwargs:
+    total_iter: 45000
+    final_ratio: 0.01
+    warmup_steps: 100
+
+# Light setting for the in-training validation and visualization
+validation:
+  denoising_steps: 4
+  ensemble_size: 1
+  processing_res: 0
+  match_input_res: true
+  resample_method: bilinear
+  main_val_metric: psnr
+  main_val_metric_goal: minimize
+  init_seed: 2024
+  use_mask: true
+
+eval:
+  eval_metrics:
+  - psnr
+  targets_to_eval_in_linear_space: 
+  - None # outputs are already in linear space, no transform needed

@@ -1,6 +1,4 @@
-# Last modified: 2024-02-08
-#
-# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+# Copyright 2023-2025 Marigold Team, ETH Zürich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # --------------------------------------------------------------------------
-# If you find this code useful, we kindly ask you to cite our paper in your work.
-# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
-# More information about the method can be found at https://marigoldmonodepth.github.io
+# More information about Marigold:
+#   https://marigoldmonodepth.github.io
+#   https://marigoldcomputervision.github.io
+# Efficient inference pipelines are now part of diffusers:
+#   https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage
+#   https://huggingface.co/docs/diffusers/api/pipelines/marigold
+# Examples of trained models and live demos:
+#   https://huggingface.co/prs-eth
+# Related projects:
+#   https://rollingdepth.github.io/
+#   https://marigolddepthcompletion.github.io/
+# Citation (BibTeX):
+#   https://github.com/prs-eth/Marigold#-citation
+# If you find Marigold useful, we kindly ask you to cite our papers.
 # --------------------------------------------------------------------------
 
 import torch
 
 from .base_depth_dataset import BaseDepthDataset, DepthFileNameMode
+from .base_normals_dataset import BaseNormalsDataset
 
 
-class NYUDataset(BaseDepthDataset):
+class NYUDepthDataset(BaseDepthDataset):
     def __init__(
         self,
         eigen_valid_mask: bool,
@@ -59,3 +68,7 @@ class NYUDataset(BaseDepthDataset):
             valid_mask = torch.logical_and(valid_mask, eval_mask)
 
         return valid_mask
+
+
+class NYUNormalsDataset(BaseNormalsDataset):
+    pass

@@ -1,0 +1,7 @@
+dataset:
+  val:
+  - name: hypersim_normals
+    disp_name: hypersim_normals_val_small_100
+    dir: hypersim
+    filenames: data_split/hypersim_normals/hypersim_filtered_val_100.txt
+    resize_to_hw: null

@@ -1,0 +1,9 @@
+dataset:
+  train:
+    name: mixed
+    prob_ls: [1.0]
+    dataset_list:
+    - name: interiorverse_iid
+      disp_name: interiorverse_iid_appearance_train
+      dir: interiorverse/InteriorVerse.tar
+      filenames: data_split/interiorverse_iid/interiorverse_train_scenes_85.txt

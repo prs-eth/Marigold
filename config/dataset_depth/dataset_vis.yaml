@@ -1,0 +1,9 @@
+dataset:
+  vis:
+  - name: hypersim_depth
+    disp_name: hypersim_depth_vis
+    dir: hypersim/hypersim_processed_val.tar
+    filenames: data_split/hypersim_depth/selected_vis_sample.txt
+    resize_to_hw:
+    - 480
+    - 640

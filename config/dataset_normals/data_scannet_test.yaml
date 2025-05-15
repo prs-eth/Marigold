@@ -1,0 +1,4 @@
+name: scannet_normals
+disp_name: scannet_normals_test
+dir: scannet
+filenames: data_split/scannet_normals/scannet_test.txt

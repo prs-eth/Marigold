@@ -1,0 +1,6 @@
+name: vkitti_depth
+disp_name: vkitti_depth_val
+dir: vkitti/vkitti.tar
+filenames: data_split/vkitti_depth/vkitti_val.txt
+kitti_bm_crop: true
+valid_mask_crop: eigen

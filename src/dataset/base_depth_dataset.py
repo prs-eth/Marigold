@@ -1,6 +1,4 @@
-# Last modified: 2024-04-30
-#
-# Copyright 2023 Bingxin Ke, ETH Zurich. All rights reserved.
+# Copyright 2023-2025 Marigold Team, ETH Zürich. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,24 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # --------------------------------------------------------------------------
-# If you find this code useful, we kindly ask you to cite our paper in your work.
-# Please find bibtex at: https://github.com/prs-eth/Marigold#-citation
-# If you use or adapt this code, please attribute to https://github.com/prs-eth/marigold.
-# More information about the method can be found at https://marigoldmonodepth.github.io
+# More information about Marigold:
+#   https://marigoldmonodepth.github.io
+#   https://marigoldcomputervision.github.io
+# Efficient inference pipelines are now part of diffusers:
+#   https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage
+#   https://huggingface.co/docs/diffusers/api/pipelines/marigold
+# Examples of trained models and live demos:
+#   https://huggingface.co/prs-eth
+# Related projects:
+#   https://rollingdepth.github.io/
+#   https://marigolddepthcompletion.github.io/
+# Citation (BibTeX):
+#   https://github.com/prs-eth/Marigold#-citation
+# If you find Marigold useful, we kindly ask you to cite our papers.
 # --------------------------------------------------------------------------
 
 import io
+import numpy as np
 import os
 import random
 import tarfile
-from enum import Enum
-from typing import Union
-
-import numpy as np
 import torch
 from PIL import Image
+from enum import Enum
 from torch.utils.data import Dataset
 from torchvision.transforms import InterpolationMode, Resize
+from typing import Union
 
 from src.util.depth_transform import DepthNormalizerBase
 
@@ -49,12 +56,6 @@ class DepthFileNameMode(Enum):
     rgb_id = 2  # rgb_id.png
     i_d_rgb = 3  # i_d_1_rgb.png
     rgb_i_d = 4
-
-
-def read_image_from_tar(tar_obj, img_rel_path):
-    image = tar_obj.extractfile("./" + img_rel_path)
-    image = image.read()
-    image = Image.open(io.BytesIO(image))
 
 
 class BaseDepthDataset(Dataset):
