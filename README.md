@@ -470,10 +470,10 @@ Please cite our paper:
 
 ```bibtex
 @InProceedings{ke2023repurposing,
-      title={Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation},
-      author={Bingxin Ke and Anton Obukhov and Shengyu Huang and Nando Metzger and Rodrigo Caye Daudt and Konrad Schindler},
-      booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-      year={2024}
+  title={Repurposing Diffusion-Based Image Generators for Monocular Depth Estimation},
+  author={Bingxin Ke and Anton Obukhov and Shengyu Huang and Nando Metzger and Rodrigo Caye Daudt and Konrad Schindler},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2024}
 }
 
 @misc{ke2025marigold,
