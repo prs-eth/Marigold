@@ -1,0 +1,17 @@
+base_config:
+  - config/train_marigold_depth.yaml
+
+
+trainer:
+  name: MarigoldLCMTrainer
+  training_noise_scheduler:
+    pretrained_path: stable-diffusion-2
+  init_seed: 2024  # use null to train w/o seeding
+  save_period: 50
+  backup_period: 2000
+  validation_period: 500
+  visualization_period: 1000
+  ema_decay: 0.95 # LCM specific settings
+  num_ddim_timesteps: 5 # LCM specific settings
+  save_target: false # LCM specific settings
+
