@@ -92,7 +92,7 @@ class BaseNormalsDataset(Dataset):
 
     def __getitem__(self, index):
         rasters, other = self._get_data_item(index)
-        if DatasetMode.TRAIN == self.mode:
+        if DatasetMode.TRAIN.value == self.mode.value:
             rasters = self._training_preprocess(rasters)
         # merge
         outputs = rasters

@@ -86,7 +86,7 @@ def get_dataset(
     List[BaseNormalsDataset],
 ]:
     if "mixed" == cfg_data_split.name:
-        assert DatasetMode.TRAIN == mode, "Only training mode supports mixed datasets."
+        assert DatasetMode.TRAIN.value == mode.value, "Only training mode supports mixed datasets."
         dataset_ls = [
             get_dataset(_cfg, base_data_dir, mode, **kwargs)
             for _cfg in cfg_data_split.dataset_list
