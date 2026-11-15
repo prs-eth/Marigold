@@ -17,6 +17,7 @@ Adaptation of Diffusion-Based Image Generators for Image Analysis"**.
 [![Intrinsics Appearance Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics%20Appearance-Model-green)](https://huggingface.co/prs-eth/marigold-iid-appearance-v1-1)
 [![Intrinsics Lighting Model](https://img.shields.io/badge/🤗%20Image%20Intrinsics%20Lighting-Model-green)](https://huggingface.co/prs-eth/marigold-iid-lighting-v1-1)
 [![Diffusers Tutorial](doc/badges/badge-hfdiffusers.svg)](https://huggingface.co/docs/diffusers/using-diffusers/marigold_usage)
+[![swm cloud](https://img.shields.io/badge/swm%20cloud-ComfyUI%20PBR%20Studio-0A84FF)](https://cloud.swmgpu.com/w/samofvaani/vision-pbr-matte-studio)
 
 Team:
 [Bingxin Ke](http://www.kebingxin.com/),
@@ -92,6 +93,8 @@ monocular depth estimation results.
 `docker run -it -p 7860:7860 --platform=linux/amd64 --gpus all registry.hf.space/prs-eth-marigold:latest python app.py`
 
 1. Extended demo on a Google Colab: <a href="https://colab.research.google.com/drive/12G8reD13DdpMie5ZQlaFNo2WCGeNUH-u?usp=sharing"><img src="doc/badges/badge-colab.svg" height="16"></a>
+
+1. 1-click cloud GPU ComfyUI workspace on **swm cloud** with Marigold v2.0 (albedo, depth, normals) pre-loaded: [Vision, Matting & PBR Decomposition Studio (BiRefNet + Lucida + Marigold v2 + MoGe)](https://cloud.swmgpu.com/w/samofvaani/vision-pbr-matte-studio)
 
 1. If you just want to see the examples, visit our gallery: <a href="https://marigoldcomputervision.github.io"><img src="doc/badges/badge-website.svg" height="16"></a>
 
